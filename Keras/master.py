@@ -8,14 +8,15 @@ import numpy as np
 import math
 import os, sys, time
 from keras.callbacks import*
-import matplotlib
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
+#import matplotlib
+#matplotlib.use("Agg")
+#import matplotlib.pyplot as plt
 import getopt
 from sklearn.model_selection import train_test_split
 import random
 from sklearn.metrics import confusion_matrix,f1_score, precision_recall_fscore_support
 pd.set_option('display.max_columns', None)
+from memory_profiler import profile
 
 class Data(object):
     def __init__(self,xdata,ydata,batch_size,size):
@@ -83,19 +84,21 @@ class MasterModeling(object):
         self.acc_list=[]
         self.val_loss_list=[]
         self.val_acc_list=[]
-
+    
+    @profile(precision=4,stream=open('output/memory_profiler.log','w+'))
     def create(self):
         self.create_model()
         self.model_json = self.model.to_json()
         self.model_weights = self.model.get_weights()
-   
+
+    @profile(precision=4,stream=open('output/memory_profiler.log','w+'))
     def average_weights(self,all_weights):
         new_weights = []
         for weights_list_tuple in zip(*all_weights):
             new_weights.append([np.array(weights_).mean(axis=0) for weights_ in zip(*weights_list_tuple)])
         self.model_weights =new_weights
         
-        
+    
     def r_block(self,in_layer,k,f):
         x=BatchNormalization()(in_layer)
         x=Activation('relu')(x)
@@ -124,12 +127,12 @@ class MasterModeling(object):
     def create_model(self):
         filter_size=16
         ins=Input((1300, 1))
-        x=Conv1D(64,filter_size,padding='same')(ins)
+        act1=Conv1D(64,filter_size,padding='same')(ins)
+        x=BatchNormalization()(act1)
+        x=Activation('relu')(x)
+        x=Conv1D(64,filter_size,padding='same')(x)
         x=BatchNormalization()(x)
-        act1=Activation('relu')(x)
-        x=Conv1D(64,filter_size,padding='same')(act1)
-        x=BatchNormalization()(x)
-        act1=Activation('relu')(x)
+        x=Activation('relu')(x)
         x=Dropout(0.2)(x)
         conv2=Conv1D(64,1,strides=2)(x)
         pool1=MaxPooling1D()(act1)
@@ -148,7 +151,8 @@ class MasterModeling(object):
         self.model=Model(inputs=ins,outputs=dense)
         #self.model.summary()
         self.model.compile(optimizer='Adam',loss='categorical_crossentropy',metrics=['accuracy','mae'])
-
+    
+    @profile(precision=4,stream=open('output/memory_profiler.log','w+'))
     def update(self,score,times,epoch):
         new_score = []
         new_score = [float(sum(col))/len(col) for col in zip(*score)]
@@ -164,7 +168,9 @@ class MasterModeling(object):
 
         msg="Epoch Info:{0},Train Acc:{1:>5.4},Train Loss:{2:>5.4},Val Acc:{3:>5.4},Val Loss:{4:>5.4} --- Time:{5}s"
         print(msg.format(epoch + 1, new_score[3],new_score[2], new_score[1],new_score[0], time.time()-times))
+        print(msg.format(epoch + 1, new_score[3],new_score[2], new_score[1],new_score[0], time.time()-times),file=main_file)
 
+    @profile(precision=4,stream=open('output/memory_profiler.log','w+'))
     def predict(self,pred,label,ltime):
 
         pred=np.vstack(pred)
@@ -199,45 +205,22 @@ class MasterModeling(object):
                                     "Precision", "Recall", "F1 Score", "Records by Labels"])
         print("{}".format(metrics_values))
         print("testing time :",time.time()-ltime)
+        m_file = open('output/F1_data.txt','w')
+        print("{}".format(metrics_values),file=m_file)
+        print("testing time :",time.time()-ltime,file=main_file)
 
-    def plot(self,losses_list):
 
-
-        
-        if len(self.loss_list) == 0:
-            print('Loss is missing in history')
-            return
-
-        epochs = range( 1, len(self.loss_list) + 1 )
-
-        plt.figure(1)
-
+    def savestat(self,losses_list):
+        print("sub training loss")
+        print("sub training loss",file=main_file)
         for i in range(len(losses_list)):
             loss_list_sub = losses_list[i]
-            plt.plot( epochs,loss_list_sub,'y')
-
-        plt.plot( epochs,
-                  self.loss_list,
-                  'b',
-                  label = 'Total - Training loss (' + str( str( format( self.loss_list[-1],'.5f' ) ) + ')' )
-                )
-
-        plt.plot( epochs,
-                  self.val_loss_list,
-                  'g',
-                  label = 'Validation loss (' + str ( str( format( self.val_loss_list[-1],'.5f' ) ) + ')' )
-                )
-
-        plt.title('Loss per Epoch')
-        plt.xlabel('Epochs')
-        plt.ylabel('Loss')
-        plt.legend()
-
-        plt.savefig( 'loss.png', bbox_inches='tight' )
-
-        plt.close()
-
-
+            print(loss_list_sub)
+            print(loss_list_sub,file=main_file)
+        print("total training loss \n",self.loss_list)
+        print("val loss \n",self.val_loss_list)
+        print("total training loss \n",self.loss_list,file=main_file)
+        print("val loss \n",self.val_loss_list,file=main_file)
 
 
 def mastermain(size,batch_size,data='./../input/xdata.npy',label='./../input/ydata.npy'):
@@ -251,7 +234,8 @@ def mastermain(size,batch_size,data='./../input/xdata.npy',label='./../input/yda
     val_step = data.getstep(data.X_validation)
     test_step = data.getstep(data.X_test)
     print('Dataset preparing --- Time:',time.time()-start)
-
+    print('Dataset preparing --- Time:',time.time()-start,file=main_file)
+    
     modeling=MasterModeling(data)
     modeling.create()
 

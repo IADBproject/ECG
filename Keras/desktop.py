@@ -9,9 +9,9 @@ import math
 import os, sys, time
 import keras.backend.tensorflow_backend as KTF
 from keras.callbacks import*
-import matplotlib
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
+#import matplotlib
+#matplotlib.use("Agg")
+#import matplotlib.pyplot as plt
 import getopt
 from sklearn.model_selection import train_test_split
 import random
@@ -144,12 +144,12 @@ class Modeling(object):
     def create_model(self):
         filter_size=16
         ins=Input((1300, 1))
-        x=Conv1D(64,filter_size,padding='same')(ins)
+        act1=Conv1D(64,filter_size,padding='same')(ins)
+        x=BatchNormalization()(act1)
+        x=Activation('relu')(x)
+        x=Conv1D(64,filter_size,padding='same')(x)
         x=BatchNormalization()(x)
-        act1=Activation('relu')(x)
-        x=Conv1D(64,filter_size,padding='same')(act1)
-        x=BatchNormalization()(x)
-        act1=Activation('relu')(x)
+        x=Activation('relu')(x)
         x=Dropout(0.2)(x)
         conv2=Conv1D(64,1,strides=2)(x)
         pool1=MaxPooling1D()(act1)
@@ -166,7 +166,7 @@ class Modeling(object):
         x=Flatten()(x)
         dense=Dense(4,activation='softmax')(x)
         self.model=Model(inputs=ins,outputs=dense)
-        #self.model.summary()
+        self.model.summary()
         self.model.compile(optimizer='Adam',loss='categorical_crossentropy',metrics=['acc','mae'])
 
 
@@ -265,6 +265,7 @@ class Modeling(object):
         plt.close()
 
 
+
 def main():
 
     start= time.time()
@@ -279,7 +280,7 @@ def main():
     end = time.time()
     model.predict()
     end_evaluate = time.time()
-    model.plot()
+    #model.plot()
 
     print('Time to load data:', end_data-start)
     print('Time to fit data:', end-fit)

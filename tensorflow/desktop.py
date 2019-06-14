@@ -3,9 +3,6 @@ import pandas as pd
 import numpy as np
 import math
 import os, sys, time
-import matplotlib
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
 import getopt
 from sklearn.model_selection import train_test_split
 import random
@@ -16,7 +13,7 @@ pd.set_option('display.max_columns', None)
 xdata= './../input/xdata.npy'
 ylabel='./../input/ydata.npy'
 batch_size =4
-epochs= 5
+epochs= 3
 learning_rate= 0.001
 
 class Data(object):
@@ -74,22 +71,25 @@ class Modeling(object):
         self.batch_size = batch_size 
         self.epochs = epochs
         self.learning_rate = learning_rate
-        config = tf.ConfigProto()
-        config.gpu_options.allow_growth = True
-        self.sess=tf.Session(config=config)
         self.loss_list=[]
         self.val_loss_list=[]
-        self.best_validation_loss=99
+        self.best_validation_loss=9999
+        self.reuse=False
         self.train()
+            
+    def relu(self,x,size):
+        b = tf.Variable(tf.random_normal([size],stddev=0.1), dtype=tf.float32)
+        x = tf.nn.bias_add(x, b)
+        return tf.nn.relu(x)
 
             
     def r_block(self,in_layer,k,is_training):
         x = tf.layers.batch_normalization(in_layer)
-        x = tf.nn.relu(x)
+        x = self.relu(x,64*k)
         x = tf.layers.dropout(x, rate=0.2, training=is_training)
-        x = tf.layers.conv1d(x,64*k,16,padding='same')
+        x = tf.layers.conv1d(x,64*k,16,padding='same',activation=tf.nn.relu)
         x = tf.layers.batch_normalization(x)
-        x = tf.nn.relu(x)
+        x = self.relu(x,64*k)
         x = tf.layers.dropout(x, rate=0.2, training=is_training)
         x = tf.layers.conv1d(x,64*k,16,padding='same')
         x = tf.add(x,in_layer)
@@ -97,28 +97,29 @@ class Modeling(object):
 
     def subsampling_r_block(self,in_layer,k,is_training):
         x = tf.layers.batch_normalization(in_layer)
-        x = tf.nn.relu(x)
+        x = self.relu(x,64*k)
         x = tf.layers.dropout(x, rate=0.2, training=is_training)
-        x = tf.layers.conv1d(x,64*k,16,padding='same')
+        x = tf.layers.conv1d(x,64*k,16,padding='same',activation=tf.nn.relu)
         x = tf.layers.batch_normalization(x)
-        x = tf.nn.relu(x)
+        x = self.relu(x,64*k)
         x = tf.layers.dropout(x, rate=0.2, training=is_training)
         x = tf.layers.conv1d(x, 64*k, 1, strides=2)
         pool = tf.layers.max_pooling1d(in_layer,1,strides=2)
         x = tf.add(x,pool)
         return x
 
-    def conv_net(self,x,reuse,is_training):
+    def conv_net(self,x,is_training):
         # Define a scope for reusing the variables
-        with tf.variable_scope('ConvNet', reuse=reuse):
+        with tf.variable_scope('ConvNet', reuse=self.reuse): 
+
+            act1 = tf.layers.conv1d(x, 64, 16, padding='same')
+            x = tf.layers.batch_normalization(act1)
+            x = self.relu(x,64)
 
             x = tf.layers.conv1d(x, 64, 16, padding='same')
             x = tf.layers.batch_normalization(x)
-            act1 = tf.nn.relu(x)
+            x = self.relu(x,64)
 
-            x = tf.layers.conv1d(act1, 64, 16, padding='same')
-            x = tf.layers.batch_normalization(x)
-            act1 = tf.nn.relu(x)
             x = tf.layers.dropout(x, rate=0.2, training=is_training)
             x1 = tf.layers.conv1d(x, 64, 1, strides=2)
 
@@ -134,146 +135,118 @@ class Modeling(object):
                 x=self.subsampling_r_block(x,k,is_training)
 
             x = tf.layers.batch_normalization(x)
-            x = tf.nn.relu(x)
+            x = self.relu(x,64*k)
             x = tf.contrib.layers.flatten(x)
             out = tf.layers.dense(x, 4)
-            out = tf.nn.softmax(out)  if not is_training else out
         return out
 
 
     def train(self):
+        tf.reset_default_graph()
+        with tf.Graph().as_default() as graph:
+            X = tf.placeholder(tf.float32, [None, 1300,1])
+            Y = tf.placeholder(tf.float32, [None, 4])
+            is_training = tf.placeholder(tf.bool, shape=())
 
-        X = tf.placeholder(tf.float32, [None, 1300,1])
-        Y = tf.placeholder(tf.float32, [None, 4])
-
-        self.trainmodel = self.conv_net(X, reuse=False, is_training=True)
-       
-        loss_op = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=self.trainmodel, labels=Y))
-        optimizer = tf.train.AdamOptimizer(learning_rate=self.learning_rate)
-        train_op = optimizer.minimize(loss_op)
-                
-        correct_pred = tf.equal(tf.argmax(self.trainmodel, 1), tf.argmax(Y, 1))
-        accuracy = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
+            trainmodel = self.conv_net(X, is_training)
+           
+            loss_op = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(logits=trainmodel, labels=Y))
+            train_op = tf.train.AdamOptimizer(learning_rate=self.learning_rate).minimize(loss_op)
+            accuracy = tf.reduce_mean(tf.cast(tf.equal(tf.argmax(trainmodel, 1), tf.argmax(Y, 1)), tf.float32))
 
 
-        init = tf.global_variables_initializer()
         n_batches = len(self.dataset.X_train)//self.batch_size
-        best_validation_accuracy=0
-        saver = tf.train.Saver()
+        n_valbatches = math.ceil(len(self.dataset.X_validation)/self.batch_size)
+       
 
-        # Launch the graph
-        self.sess.run(init)
-        next_batch_gen = self.dataset.next_batch( self.dataset.X_train, self.dataset.Y_train,self.batch_size)
-        for i in range(self.epochs):
-            estart=time.time()
-            for j in range(n_batches):
-                data, label = next(next_batch_gen)
-                self.sess.run(train_op, feed_dict={X: data, Y: label})
-                
-            losst,acct=self.sess.run([loss_op,accuracy], feed_dict={X: data, Y: label})
-            acc_validation,val_loss= self.predict(self.dataset.X_validation,self.dataset.Y_validation,False)
-            improved_str='None'
-            if val_loss < self.best_validation_loss:
-                self.best_validation_loss = val_loss
-                saver.save(self.sess,  "./model.ckpt")
-                improved_str = '\n Update!'
-
-            msg = "Iter: {0:>4}, Train-Batch Accuracy: {1:>6.3},Train-Batch Loss: {2:>6.3}, Validation Acc: {3:>6.3}, Validation Loss: {4:>6.3} ---Time: {5} {6}"
-            print(msg.format(i + 1, acct,losst, acc_validation,val_loss,time.time()-estart, improved_str))
-            self.loss_list.append(losst)
-            self.val_loss_list.append(val_loss)
-
-        saver.restore(self.sess, "./model.ckpt")
-        acc_test,loss_test= self.predict(self.dataset.X_test,self.dataset.Y_test,True)
-        print('Predict loss:', loss_test)
-        print('Predict accuracy:', acc_test)
-        self.plot()
-
-
-    def predict(self,data,label,isValid):
-        num=len(data)
-        i = 0
-        acc_list=[]
-        loss_list=[]
-        pred=[]
-        XX = tf.placeholder(tf.float32, [None, 1300,1])
-        YY = tf.placeholder(tf.float32, [None, 4])
-        self.testmodel = self.conv_net(XX, reuse=True, is_training=False)
-        loss_op = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=self.testmodel, labels=YY))
-        correct_pred = tf.equal(tf.argmax(self.testmodel, 1), tf.argmax(YY, 1))
-        accuracy = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
-        
-        while i < num:
-            j = min(i + self.batch_size, num)
-            pre,acc,losst=self.sess.run([self.testmodel,accuracy,loss_op], feed_dict={XX: data[i:j],YY: label[i:j]})
-            pred.append(pre)
-            acc_list.append(acc)
-            loss_list.append(losst)
-            i = j
-        acc=float(sum(acc_list))/len(acc_list)
-        loss=float(sum(loss_list))/len(loss_list)
-
-        if isValid:
-            pred=np.vstack(pred)
-            pred =  np.argmax(pred, axis = 1)
-            label =  np.argmax(label, axis = 1)
-            labels, counts = np.unique(label, return_counts = True)
-
-            conf_matrix = confusion_matrix(label, pred, labels)
-            true_positive = np.diag(conf_matrix)
-            false_negative = []
-            false_positive = []
-            for i in range(len(conf_matrix)):
-                false_positive.append(int(sum(conf_matrix[:,i]) - conf_matrix[i,i]))
-                false_negative.append(int(sum(conf_matrix[i,:]) - conf_matrix[i,i]))
+        with tf.Session(graph=graph) as sess:
+            init = tf.group(tf.global_variables_initializer(),
+                        tf.local_variables_initializer())
+            sess.run(init)
+            saver = tf.train.Saver()
             
-            precision, recall, F1_score, support = precision_recall_fscore_support(label,pred, average = None)
 
-            for i in range(len(labels)):
-                precision[i] =  round(precision[i], 2)
-                recall[i] =  round(recall[i], 2)
-                F1_score[i] = round(F1_score[i], 2)
+            for i in range(self.epochs):
+                acc,loss,val_acc,val_loss=0,0,0,0
+                next_batch_gen = self.dataset.next_batch( self.dataset.X_train, self.dataset.Y_train,self.batch_size)
+                estart=time.time()
+                for j in range(n_batches):
+                    data, label = next(next_batch_gen)
+                    self.reuse=False
+                    _,losst,acct=sess.run([train_op,loss_op,accuracy], 
+                                    feed_dict={X: data, Y: label, is_training: True})
+                    acc+=acct/n_batches
+                    loss+=losst/n_batches
+                self.reuse=True
+                for t in  range(n_valbatches):
+                    j = min((t+1 )* self.batch_size, len(self.dataset.Y_validation))
+                    acct,losst=sess.run([accuracy,loss_op], 
+                                    feed_dict={X: self.dataset.X_validation[t* self.batch_size:j],
+                                    Y: self.dataset.Y_validation[t* self.batch_size:j], is_training: False})
+                    val_acc+=acct/n_valbatches
+                    val_loss+=losst/n_valbatches
+                
+                improved_str='None'
+                if val_loss < self.best_validation_loss:
+                    self.best_validation_loss = val_loss
+                    saver.save(sess,  "./model.ckpt")
+                    improved_str = '\n Update!'
+
+                msg = "Iter: {0}, Train Accuracy: {1:.4},Train Loss: {2:.4}, Validation Acc: {3:.4}, Validation Loss: {4:.4} ---Time: {5:.4} {6}"
+                print(msg.format(i + 1, acc,loss, val_acc,val_loss,time.time()-estart, improved_str))
+                self.loss_list.append(loss)
+                self.val_loss_list.append(val_loss)
+
+            saver.restore(sess, "./model.ckpt")
+            pred=[]
+            acc_test,loss_test=0,0
+            n_tbatches = math.ceil(len(self.dataset.X_test)/self.batch_size)
+            for i in  range(n_tbatches):
+                    j = min((i+1 ) * self.batch_size, len(self.dataset.Y_test))
+                    pre,acc,loss=sess.run([trainmodel,accuracy,loss_op], 
+                                    feed_dict={X: self.dataset.X_test[i* self.batch_size:j],
+                                    Y: self.dataset.Y_test[i* self.batch_size:j], is_training: False})
+                    acc_test+=acc/n_valbatches
+                    loss_test+=loss/n_valbatches
+                    pred.append(pre)
+
+            print('Predict loss:', loss_test)
+            print('Predict accuracy:', acc_test)
+            self.predict(pred)
 
 
-            label_occurrences = np.where(support !=0)
-            occs = label_occurrences[0]
-            metrics_values = np.vstack((labels, true_positive, false_negative,
-                                        false_positive, precision[occs],
-                                        recall[occs], F1_score[occs], support[occs]))
-            metrics_values = np.transpose(metrics_values)
-            metrics_values = pd.DataFrame(metrics_values, columns = ["Labels", "TP", "FN", "FP",
-                                        "Precision", "Recall", "F1 Score", "Records by Labels"])
-            print("{}".format(metrics_values))
+    def predict(self,pred):
 
-        return acc,loss
+        pred=np.vstack(pred)
+        pred =  np.argmax(pred, axis = 1)
+        label =  np.argmax(self.dataset.Y_test, axis = 1)
+        labels, counts = np.unique(label, return_counts = True)
+
+        conf_matrix = confusion_matrix(label, pred, labels)
+        true_positive = np.diag(conf_matrix)
+        false_negative = []
+        false_positive = []
+        for i in range(len(conf_matrix)):
+            false_positive.append(int(sum(conf_matrix[:,i]) - conf_matrix[i,i]))
+            false_negative.append(int(sum(conf_matrix[i,:]) - conf_matrix[i,i]))
         
-    def plot(self):
+        precision, recall, F1_score, support = precision_recall_fscore_support(label,pred, average = None)
 
-        if len(self.loss_list) == 0:
-            print('Loss is missing in history')
-            return
+        for i in range(len(labels)):
+            precision[i] =  round(precision[i], 2)
+            recall[i] =  round(recall[i], 2)
+            F1_score[i] = round(F1_score[i], 2)
 
-        epochs = range( 1, len(self.loss_list) + 1 )
 
-        plt.figure(1)
-        plt.plot( epochs,
-                  self.loss_list,
-                  'b',
-                  label = 'Training loss (' + str( str( format( self.loss_list[-1],'.5f' ) ) + ')' )
-                )
-        plt.plot( epochs,
-                  self.val_loss_list,
-                  'g',
-                  label = 'Validation loss (' + str ( str( format( self.val_loss_list[-1],'.5f' ) ) + ')' )
-                )
-
-        plt.title('Loss per Epoch')
-        plt.xlabel('Epochs')
-        plt.ylabel('Loss')
-        plt.legend()
-
-        plt.savefig( 'loss.png', bbox_inches='tight' )
-        plt.close()
+        label_occurrences = np.where(support !=0)
+        occs = label_occurrences[0]
+        metrics_values = np.vstack((labels, true_positive, false_negative,
+                                    false_positive, precision[occs],
+                                    recall[occs], F1_score[occs], support[occs]))
+        metrics_values = np.transpose(metrics_values)
+        metrics_values = pd.DataFrame(metrics_values, columns = ["Labels", "TP", "FN", "FP",
+                                    "Precision", "Recall", "F1 Score", "Records by Labels"])
+        print("{}".format(metrics_values))
 
 
 def main():

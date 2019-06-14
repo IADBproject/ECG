@@ -4,6 +4,7 @@ import tensorflow as tf
 import numpy as np
 import os, sys, time
 from keras.callbacks import*
+from memory_profiler import profile
 
 class TrainHistory(keras.callbacks.Callback):
     def __init__(self):
@@ -32,6 +33,7 @@ class WorkerModeling(object):
         self.model = model_from_json(self.model_json)
         self.model.compile(loss='categorical_crossentropy', optimizer='Adam', metrics=['accuracy','mae'])
 
+    @profile(precision=4,stream=open('output/memory_profiler.log','w+'))
     def train(self,data,label,end_epoch):
         self.model.fit(x=data,y=label, epochs=1,callbacks=[self.history],verbose = 0)
         if end_epoch:
@@ -39,6 +41,7 @@ class WorkerModeling(object):
             self.loss_list.append(self.history.loss)
             self.acc_list.append(self.history.acc)
 
+    @profile(precision=4,stream=open('output/memory_profiler.log','w+'))
     def validate(self,data,label):
         score=self.model.evaluate(x=data,y=label,verbose = 0)
         self.val_loss=score[0]
@@ -50,6 +53,7 @@ class WorkerModeling(object):
         else:
             self.model.set_weights(self.best_model_weights)  
 
+@profile(precision=4,stream=open('output/memory_profiler.log','w+'))
     def test(self,data):
         prediction=self.model.predict(data)
         return prediction

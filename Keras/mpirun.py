@@ -13,8 +13,9 @@ if __name__ == '__main__':
     epochs = 30
     batch_size = 4
 
-
+    
     if rank==0:
+        main_file = open('output/main_data.txt','w')
         modeling,train_next_batch_gen,val_next_batch_gen,test_next_batch_gen,train_step,val_step,\
         test_step=mastermain((size-1),batch_size)
 
@@ -94,6 +95,7 @@ if __name__ == '__main__':
     ####testing
     if rank==0:
         print("training time :",end-fit)
+        print("training time :",end-fit,file=main_file)
         for i in range(1, size):
             comm.send(modeling.best_model_weights, dest=i)
     else:
@@ -126,7 +128,8 @@ if __name__ == '__main__':
         w=[]
         for i in range(1, size):
             w.append(comm.recv(source=i))
-        modeling.plot(w)
+        modeling.savestat(w)
+        main_file.close()
     else:
         comm.send(modeling.loss_list, dest=0)
 
