@@ -1,0 +1,7 @@
+## inputs and outputs
+input/*
+enerGyPU/testbed/*
+
+## Keras objects
+Keras/__pycache__/
+Keras/h-workers
