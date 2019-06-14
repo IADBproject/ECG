@@ -3,19 +3,18 @@ from worker import *
 from mpi4py import MPI
 import time, math
 from collections import Iterable
+from memory_profiler import profile
 
-
-
-if __name__ == '__main__':
+@profile(precision=4,stream=open('output/memory_profiler.log','w+'))
+def main():
     comm = MPI.COMM_WORLD
     size = comm.Get_size()
     rank = comm.Get_rank()
-    epochs = 30
+    epochs = 20
     batch_size = 4
 
     
     if rank==0:
-        main_file = open('output/main_data.txt','w')
         modeling,train_next_batch_gen,val_next_batch_gen,test_next_batch_gen,train_step,val_step,\
         test_step=mastermain((size-1),batch_size)
 
@@ -95,7 +94,7 @@ if __name__ == '__main__':
     ####testing
     if rank==0:
         print("training time :",end-fit)
-        print("training time :",end-fit,file=main_file)
+        print("training time :",end-fit,file=modeling.main_file)
         for i in range(1, size):
             comm.send(modeling.best_model_weights, dest=i)
     else:
@@ -129,7 +128,9 @@ if __name__ == '__main__':
         for i in range(1, size):
             w.append(comm.recv(source=i))
         modeling.savestat(w)
-        main_file.close()
+        modeling.main_file.close()
     else:
         comm.send(modeling.loss_list, dest=0)
 
+if __name__ == '__main__':
+    main()
