@@ -207,6 +207,7 @@ class MasterModeling(object):
         print("testing time :",time.time()-ltime)
         m_file = open('output/F1_data.txt','w')
         print("{}".format(metrics_values),file=m_file)
+        m_file.close()
         print("testing time :",time.time()-ltime,file=main_file)
 
 
