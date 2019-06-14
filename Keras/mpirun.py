@@ -10,7 +10,7 @@ def main():
     comm = MPI.COMM_WORLD
     size = comm.Get_size()
     rank = comm.Get_rank()
-    epochs = 20
+    epochs = 4
     batch_size = 4
 
     
