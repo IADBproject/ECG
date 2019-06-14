@@ -53,7 +53,7 @@ class WorkerModeling(object):
         else:
             self.model.set_weights(self.best_model_weights)  
 
-@profile(precision=4,stream=open('output/memory_profiler.log','w+'))
+    @profile(precision=4,stream=open('output/memory_profiler.log','w+'))
     def test(self,data):
         prediction=self.model.predict(data)
         return prediction

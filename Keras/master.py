@@ -75,7 +75,8 @@ class Data(object):
 class MasterModeling(object):
     def __init__(self,dataset):
         self.dataset = dataset
-        self.model = Model()
+        #self.model = Model()
+        self.model = Model
         self.model_json=None
         self.model_weights=None
         self.best_model_weights=None
@@ -235,7 +236,7 @@ def mastermain(size,batch_size,data='./../input/xdata.npy',label='./../input/yda
     val_step = data.getstep(data.X_validation)
     test_step = data.getstep(data.X_test)
     print('Dataset preparing --- Time:',time.time()-start)
-    print('Dataset preparing --- Time:',time.time()-start,file=main_file)
+    #print('Dataset preparing --- Time:',time.time()-start,file=main_file)
     
     modeling=MasterModeling(data)
     modeling.create()
