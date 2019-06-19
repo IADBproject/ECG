@@ -36,13 +36,13 @@ def main():
 
     for e in range(epochs):
         sub_time = time.time()
-        #if rank==0:
-            #sub_time= time.time()
-        #    for i in range(1, size):
-        #        comm.send(modeling.model_weights, dest=i)
-        #else:
-        #    modeling.model_weights = comm.recv(source=0)
-        #    modeling.read(True)
+        if rank==0:
+            sub_time= time.time()
+            for i in range(1, size):
+                comm.send(modeling.model_weights, dest=i)
+        else:
+            modeling.model_weights = comm.recv(source=0)
+            modeling.read(True)
 
         #if rank==(size-1):
         #    print("pass weights timing",time.time()-sub_time)
