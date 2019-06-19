@@ -139,5 +139,7 @@ class WorkerModeling(object):
         print("test acc:",pred_acc,file=wfile)
         print(" {}".format(metrics_values),file=wfile)
 
-
+        wvfile.close()
+        wtfile.close()
+        wfile.close()
 
