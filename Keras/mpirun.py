@@ -15,10 +15,7 @@ def main():
     size = comm.Get_size()
     rank = comm.Get_rank()
     myhost = MPI.Get_processor_name()
-    filename=str('output/worker/host_'+str(myhost)+'_rank_'+str(rank)+'_train.txt')
-    wfile = open(filename,'w')
-    wfile.close()
-    epochs = 5
+    epochs = 20
     batch_size = 8       
     if rank==0:
         modeling,train_next_batch_gen,val_next_batch_gen,test_next_batch_gen,train_step,val_step,\

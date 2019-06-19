@@ -41,8 +41,8 @@ class Data(object):
     def readdata(self,xdata,ydata):
         self.X = np.load(xdata)
         self.Y = np.load(ydata)
-        self.X = self.X[:1000]
-        self.Y = self.Y[:1000]
+        #self.X = self.X[:1000]
+        #self.Y = self.Y[:1000]
         self.Y=pd.get_dummies(self.Y).values
 
 
