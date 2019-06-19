@@ -1,6 +1,8 @@
 ## inputs and outputs
 input/*
+Keras/output/*
 enerGyPU/testbed/*
+
 
 ## Keras objects
 Keras/__pycache__/
