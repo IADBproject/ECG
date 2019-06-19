@@ -16,7 +16,7 @@ from sklearn.model_selection import train_test_split
 import random
 from sklearn.metrics import confusion_matrix,f1_score, precision_recall_fscore_support
 pd.set_option('display.max_columns', None)
-from memory_profiler import profile
+#from memory_profiler import profile
 
 class Data(object):
     def __init__(self,xdata,ydata,batch_size,size):
@@ -40,8 +40,8 @@ class Data(object):
     def readdata(self,xdata,ydata):
         self.X = np.load(xdata)
         self.Y = np.load(ydata)
-        self.X = self.X[:500]
-        self.Y = self.Y[:500]
+        self.X = self.X[:2800]
+        self.Y = self.Y[:2800]
         self.Y=pd.get_dummies(self.Y).values
 
     def datapreposessing(self):
@@ -88,19 +88,21 @@ class MasterModeling(object):
         self.val_loss_list=[]
         self.val_acc_list=[]
     
-    @profile(precision=4,stream=open('output/memory_profiler.log','w+'))
+    #@profile(precision=4,stream=open('output/memory_profiler.log','w+'))
     def create(self):
         self.create_model()
         self.model_json = self.model.to_json()
         self.model_weights = self.model.get_weights()
 
-    @profile(precision=4,stream=open('output/memory_profiler.log','w+'))
+    #@profile(precision=4,stream=open('output/memory_profiler.log','w+'))
     def average_weights(self,all_weights):
         new_weights = []
+        #print(all_weights)
+        #print("@@@@@")
         for weights_list_tuple in zip(*all_weights):
             new_weights.append([np.array(weights_).mean(axis=0) for weights_ in zip(*weights_list_tuple)])
         self.model_weights =new_weights
-        
+        #print(new_weights)
     
     def r_block(self,in_layer,k,f):
         x=BatchNormalization()(in_layer)
@@ -155,7 +157,7 @@ class MasterModeling(object):
         #self.model.summary()
         self.model.compile(optimizer='Adam',loss='categorical_crossentropy',metrics=['accuracy','mae'])
     
-    @profile(precision=4,stream=open('output/memory_profiler.log','w+'))
+    #@profile(precision=4,stream=open('output/memory_profiler.log','w+'))
     def update(self,score,times,epoch):
         new_score = []
         new_score = [float(sum(col))/len(col) for col in zip(*score)]
@@ -173,7 +175,7 @@ class MasterModeling(object):
         print(msg.format(epoch + 1, new_score[3],new_score[2], new_score[1],new_score[0], time.time()-times))
         #print(msg.format(epoch + 1, new_score[3],new_score[2], new_score[1],new_score[0], time.time()-times),file=main_file)
 
-    @profile(precision=4,stream=open('output/memory_profiler.log','w+'))
+    #@profile(precision=4,stream=open('output/memory_profiler.log','w+'))
     def predict(self,pred,label,ltime):
 
         pred=np.vstack(pred)
@@ -189,7 +191,8 @@ class MasterModeling(object):
         for i in range(len(conf_matrix)):
             false_positive.append(int(sum(conf_matrix[:,i]) - conf_matrix[i,i]))
             false_negative.append(int(sum(conf_matrix[i,:]) - conf_matrix[i,i]))
-        
+        pred_acc = f1_score(y_true=label, y_pred=pred, average='micro')
+        print("test acc:",pred_acc)        
         precision, recall, F1_score, support = precision_recall_fscore_support(label,pred, average = None)
 
         for i in range(len(labels)):
@@ -215,15 +218,15 @@ class MasterModeling(object):
 
 
     def savestat(self,losses_list):
-        print("sub training loss")
+        #print("sub training loss")
         main_file = open('output/Loss_data.txt','w')
         print("sub training loss",file=main_file)
         for i in range(len(losses_list)):
             loss_list_sub = losses_list[i]
-            print(loss_list_sub)
+            #print(loss_list_sub)
             print(loss_list_sub,file=main_file)
-        print("total training loss \n",self.loss_list)
-        print("val loss \n",self.val_loss_list)
+        #print("total training loss \n",self.loss_list)
+        #print("val loss \n",self.val_loss_list)
         print("total training loss \n",self.loss_list,file=main_file)
         print("val loss \n",self.val_loss_list,file=main_file)
         main_file.close()
@@ -232,12 +235,14 @@ def mastermain(size,batch_size,data='./../input/xdata.npy',label='./../input/yda
 
     start=time.time()
     data=Data(data,label,batch_size,size)
+	
     train_next_batch_gen = data.generator( data.X_train, data.Y_train)
     val_next_batch_gen = data.generator( data.X_validation, data.Y_validation)
     test_next_batch_gen = data.generator( data.X_test, data.Y_test)
     train_step = data.getstep(data.X_train)
     val_step = data.getstep(data.X_validation)
     test_step = data.getstep(data.X_test)
+    print(len(data.X_train),len(data.X_validation),len(data.X_test))
     print('Dataset preparing --- Time:',time.time()-start)
     #print('Dataset preparing --- Time:',time.time()-start,file=main_file)
     

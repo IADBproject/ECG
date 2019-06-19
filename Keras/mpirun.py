@@ -3,22 +3,23 @@ from worker import *
 from mpi4py import MPI
 import time, math
 from collections import Iterable
+#from memory_profiler import profile
 
-
-
-if __name__ == '__main__':
+#@profile
+def main():
     comm = MPI.COMM_WORLD
     size = comm.Get_size()
     rank = comm.Get_rank()
-    epochs = 30
-    batch_size = 4
+    epochs = 2
+    batch_size = 8
 
     
     if rank==0:
         #main_file = open('output/main_data.txt','w')
         modeling,train_next_batch_gen,val_next_batch_gen,test_next_batch_gen,train_step,val_step,\
         test_step=mastermain((size-1),batch_size)
-
+    print(train_step,val_step,test_step)
+    #atime=time.time()
     if rank==0:
         for i in range(1, size):
             comm.send([modeling.model_json,train_step,val_step,test_step], dest=i)
@@ -26,17 +27,22 @@ if __name__ == '__main__':
         modeling=WorkerModeling()
         modeling.model_json,train_step,val_step,test_step=comm.recv(source=0)
         modeling.load()
-
+    #if rank==(size-1):
+    #    print("pass model timing",time.time()-atime)
     fit = time.time()
 
     for e in range(epochs):
-        if rank==0:
-            sub_time= time.time()
-            for i in range(1, size):
-                comm.send(modeling.model_weights, dest=i)
-        else:
-            modeling.model_weights = comm.recv(source=0)
-            modeling.read(True)
+        sub_time = time.time()
+        #if rank==0:
+            #sub_time= time.time()
+        #    for i in range(1, size):
+        #        comm.send(modeling.model_weights, dest=i)
+        #else:
+        #    modeling.model_weights = comm.recv(source=0)
+        #    modeling.read(True)
+
+        #if rank==(size-1):
+        #    print("pass weights timing",time.time()-sub_time)
 
         ###training
         for s in range(train_step):
@@ -81,6 +87,8 @@ if __name__ == '__main__':
                     modeling.validate(data,label)
                     val_loss+=modeling.val_loss/val_step
                     val_acc+=modeling.val_acc/val_step
+                else:
+                    print("rank:",rank," skip val data")
 
         if rank==0:
             w=[]
@@ -88,8 +96,9 @@ if __name__ == '__main__':
                 w.append(comm.recv(source=i))
             modeling.update(w,sub_time,e)
         else:
-            comm.send([val_loss,val_acc,modeling.history.loss,modeling.history.acc], dest=0)
-
+            comm.send([val_loss,val_acc,modeling.loss_list[-1],modeling.acc_list[-1], dest=0)
+            modeling.val_loss_list.append(val_loss)
+            modeling.val_acc_list.append(val_acc)
     end = time.time()
 
     ####testing
@@ -102,6 +111,7 @@ if __name__ == '__main__':
         modeling.best_model_weights = comm.recv(source=0)
         modeling.read(False)
 
+    p,t=[],[]
     for s in range(test_step):
         if rank==0:
             data,label=next(test_next_batch_gen)
@@ -113,7 +123,6 @@ if __name__ == '__main__':
             pred = modeling.test(data)
 
         if rank==0:
-            p,t=[],[]
             for i in range(1, size):
                 tmp1,tmp2=comm.recv(source=i)
                 p.append(tmp1)
@@ -132,4 +141,8 @@ if __name__ == '__main__':
         #main_file.close()
     else:
         comm.send(modeling.loss_list, dest=0)
+        modeling.trainstats(rank)
+        modeling.predictstats(rank)
 
+if __name__ == '__main__':
+    main()
