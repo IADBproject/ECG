@@ -81,7 +81,7 @@ class Modeling(object):
         self.batch_size = batch_size 
         self.epochs = epochs
         self.history = History()
-        self.model = Model()
+        #self.model = Model()
         self.model = None
         self.model_json=None
         self.model_weights=None

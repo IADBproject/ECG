@@ -1,0 +1,104 @@
+--- Launched ---
+Dataset preparing --- Time: 0.1922459602355957
+2019-06-18 18:14:53.938832: E tensorflow/stream_executor/cuda/cuda_driver.cc:406] failed call to cuInit: CUDA_ERROR_NO_DEVICE
+2019-06-18 18:14:53.938910: I tensorflow/stream_executor/cuda/cuda_diagnostics.cc:145] kernel driver does not appear to be running on this host (pascal5): /proc/driver/nvidia/version does not exist
+pass model timing 81.98506879806519
+2019-06-18 18:16:03.105369: E tensorflow/stream_executor/cuda/cuda_driver.cc:406] failed call to cuInit: CUDA_ERROR_NO_DEVICE
+2019-06-18 18:16:03.105467: I tensorflow/stream_executor/cuda/cuda_diagnostics.cc:145] kernel driver does not appear to be running on this host (pascal5): /proc/driver/nvidia/version does not exist
+2019-06-18 18:16:04.129491: E tensorflow/stream_executor/cuda/cuda_driver.cc:406] failed call to cuInit: CUDA_ERROR_NO_DEVICE
+2019-06-18 18:16:04.129570: I tensorflow/stream_executor/cuda/cuda_diagnostics.cc:145] kernel driver does not appear to be running on this host (pascal6): /proc/driver/nvidia/version does not exist
+2019-06-18 18:16:05.832816: E tensorflow/stream_executor/cuda/cuda_driver.cc:406] failed call to cuInit: CUDA_ERROR_NO_DEVICE
+2019-06-18 18:16:05.832944: I tensorflow/stream_executor/cuda/cuda_diagnostics.cc:145] kernel driver does not appear to be running on this host (pascal5): /proc/driver/nvidia/version does not exist
+2019-06-18 18:16:06.056102: E tensorflow/stream_executor/cuda/cuda_driver.cc:406] failed call to cuInit: CUDA_ERROR_NO_DEVICE
+2019-06-18 18:16:06.056181: I tensorflow/stream_executor/cuda/cuda_diagnostics.cc:145] kernel driver does not appear to be running on this host (pascal6): /proc/driver/nvidia/version does not exist
+2019-06-18 18:16:06.528850: E tensorflow/stream_executor/cuda/cuda_driver.cc:406] failed call to cuInit: CUDA_ERROR_NO_DEVICE
+2019-06-18 18:16:06.528968: I tensorflow/stream_executor/cuda/cuda_diagnostics.cc:145] kernel driver does not appear to be running on this host (pascal5): /proc/driver/nvidia/version does not exist
+2019-06-18 18:16:07.723188: E tensorflow/stream_executor/cuda/cuda_driver.cc:406] failed call to cuInit: CUDA_ERROR_NO_DEVICE
+2019-06-18 18:16:07.723278: I tensorflow/stream_executor/cuda/cuda_diagnostics.cc:145] kernel driver does not appear to be running on this host (rosie6): /proc/driver/nvidia/version does not exist
+2019-06-18 18:16:08.017925: E tensorflow/stream_executor/cuda/cuda_driver.cc:406] failed call to cuInit: CUDA_ERROR_NO_DEVICE
+2019-06-18 18:16:08.018078: I tensorflow/stream_executor/cuda/cuda_diagnostics.cc:145] kernel driver does not appear to be running on this host (pascal6): /proc/driver/nvidia/version does not exist
+2019-06-18 18:16:09.690969: E tensorflow/stream_executor/cuda/cuda_driver.cc:406] failed call to cuInit: CUDA_ERROR_NO_DEVICE
+2019-06-18 18:16:09.691047: I tensorflow/stream_executor/cuda/cuda_diagnostics.cc:145] kernel driver does not appear to be running on this host (rosie6): /proc/driver/nvidia/version does not exist
+2019-06-18 18:16:10.015621: E tensorflow/stream_executor/cuda/cuda_driver.cc:406] failed call to cuInit: CUDA_ERROR_NO_DEVICE
+2019-06-18 18:16:10.015797: I tensorflow/stream_executor/cuda/cuda_diagnostics.cc:145] kernel driver does not appear to be running on this host (pascal6): /proc/driver/nvidia/version does not exist
+2019-06-18 18:16:11.882338: E tensorflow/stream_executor/cuda/cuda_driver.cc:406] failed call to cuInit: CUDA_ERROR_NO_DEVICE
+2019-06-18 18:16:11.882477: I tensorflow/stream_executor/cuda/cuda_diagnostics.cc:145] kernel driver does not appear to be running on this host (rosie6): /proc/driver/nvidia/version does not exist
+2019-06-18 18:16:13.354059: E tensorflow/stream_executor/cuda/cuda_driver.cc:406] failed call to cuInit: CUDA_ERROR_NO_DEVICE
+2019-06-18 18:16:13.354186: I tensorflow/stream_executor/cuda/cuda_diagnostics.cc:145] kernel driver does not appear to be running on this host (rosie6): /proc/driver/nvidia/version does not exist
+pass weights timing 51.183592081069946
+Epoch Info:1,Train Acc:0.5227,Train Loss:1.006,Val Acc:0.5668,Val Loss:1.132 --- Time:1213.9882686138153s
+pass weights timing 13.938992023468018
+Epoch Info:2,Train Acc:0.4773,Train Loss:1.085,Val Acc:0.571,Val Loss:1.172 --- Time:830.4623024463654s
+pass weights timing 14.596157550811768
+Epoch Info:3,Train Acc:0.4091,Train Loss:1.725,Val Acc:0.5568,Val Loss: 1.18 --- Time:827.8974702358246s
+pass weights timing 15.31061863899231
+Epoch Info:4,Train Acc:0.5568,Train Loss:1.007,Val Acc:0.5682,Val Loss:1.115 --- Time:821.7015111446381s
+pass weights timing 14.5882728099823
+Epoch Info:5,Train Acc:0.4545,Train Loss:1.332,Val Acc:0.5682,Val Loss:1.044 --- Time:823.8187084197998s
+pass weights timing 15.194810152053833
+Epoch Info:6,Train Acc:  0.5,Train Loss:1.146,Val Acc:0.5696,Val Loss:1.004 --- Time:822.6644465923309s
+pass weights timing 14.933665037155151
+Epoch Info:7,Train Acc:0.5455,Train Loss:1.043,Val Acc:0.5753,Val Loss:0.9802 --- Time:824.7642259597778s
+pass weights timing 14.519214153289795
+Epoch Info:8,Train Acc:0.5795,Train Loss:1.176,Val Acc:0.5724,Val Loss:0.9747 --- Time:821.3830480575562s
+pass weights timing 14.663377285003662
+Epoch Info:9,Train Acc:0.5682,Train Loss:1.093,Val Acc:0.571,Val Loss:0.9802 --- Time:821.4541175365448s
+pass weights timing 14.871455430984497
+Epoch Info:10,Train Acc:0.4545,Train Loss:1.163,Val Acc:0.5597,Val Loss:0.9809 --- Time:821.3834745883942s
+pass weights timing 14.68734860420227
+Epoch Info:11,Train Acc:0.5568,Train Loss:1.114,Val Acc:0.5696,Val Loss:0.9948 --- Time:823.0245156288147s
+pass weights timing 14.425727128982544
+Epoch Info:12,Train Acc:0.4773,Train Loss:1.091,Val Acc:0.5639,Val Loss:1.003 --- Time:822.4984366893768s
+pass weights timing 14.779416799545288
+Epoch Info:13,Train Acc:0.6023,Train Loss:0.972,Val Acc:0.5724,Val Loss:0.9901 --- Time:820.9719450473785s
+pass weights timing 14.482043504714966
+Epoch Info:14,Train Acc:0.5568,Train Loss:1.041,Val Acc:0.5838,Val Loss:0.9855 --- Time:819.9793078899384s
+pass weights timing 14.904426097869873
+Epoch Info:15,Train Acc:0.5341,Train Loss:0.9793,Val Acc:0.571,Val Loss:0.9713 --- Time:815.3099422454834s
+pass weights timing 14.907268285751343
+Epoch Info:16,Train Acc:0.6364,Train Loss:1.045,Val Acc:0.5767,Val Loss:0.9737 --- Time:820.5917897224426s
+pass weights timing 14.661054134368896
+Epoch Info:17,Train Acc:0.5114,Train Loss: 1.03,Val Acc:0.571,Val Loss:0.9504 --- Time:817.0656361579895s
+pass weights timing 14.405163049697876
+Epoch Info:18,Train Acc:0.5227,Train Loss:1.076,Val Acc:0.5923,Val Loss:0.9267 --- Time:815.2661726474762s
+pass weights timing 14.762720584869385
+Epoch Info:19,Train Acc:0.5682,Train Loss:1.223,Val Acc:0.571,Val Loss:0.9714 --- Time:814.785679101944s
+pass weights timing 14.356282949447632
+Epoch Info:20,Train Acc:0.5682,Train Loss:1.082,Val Acc:0.571,Val Loss:0.9867 --- Time:816.5468285083771s
+training time : 16815.559983491898
+Using TensorFlow backend.
+Using TensorFlow backend.
+Using TensorFlow backend.
+Using TensorFlow backend.
+Using TensorFlow backend.
+Using TensorFlow backend.
+Using TensorFlow backend.
+Using TensorFlow backend.
+Using TensorFlow backend.
+test acc: 0.5568181818181818
+Using TensorFlow backend.
+Using TensorFlow backend.
+   Labels    TP    FN    FP  Precision  Recall  F1 Score  Records by Labels
+0     0.0  49.0   0.0  39.0       0.56     1.0      0.72               49.0
+1     1.0   0.0  11.0   0.0       0.00     0.0      0.00               11.0
+2     2.0   0.0  27.0   0.0       0.00     0.0      0.00               27.0
+3     3.0   0.0   1.0   0.0       0.00     0.0      0.00                1.0
+testing time : 40.01621723175049
+[0.8630335330963135, 1.3400928974151611, 2.1129868030548096, 0.8898455500602722, 1.2167881727218628, 0.9102144241333008, 1.1671262979507446, 1.823172926902771, 1.1460421085357666, 1.1106476783752441, 1.0033835172653198, 1.2325875759124756, 1.3277342319488525, 0.9738724231719971, 0.9398693442344666, 1.3924198150634766, 1.1647779941558838, 1.2543617486953735, 1.3982608318328857, 0.952010452747345]
+[0.9813342094421387, 0.8474423885345459, 0.8027174472808838, 0.7775991559028625, 1.3722484111785889, 1.304799199104309, 1.333841323852539, 0.9349874258041382, 1.1057493686676025, 1.1128301620483398, 1.3603637218475342, 1.217721700668335, 0.7434450387954712, 0.9257636070251465, 1.049450159072876, 0.9582638740539551, 0.6847248077392578, 1.34873366355896, 0.7978033423423767, 0.7232820987701416]
+[1.0150765180587769, 1.4017765522003174, 2.4886975288391113, 1.2070565223693848, 1.7111470699310303, 0.9858112931251526, 0.8781238794326782, 1.0887980461120605, 1.0791454315185547, 0.8184894323348999, 1.4323434829711914, 1.177527666091919, 1.4850144386291504, 0.7488764524459839, 1.6494394540786743, 1.4560225009918213, 1.0072550773620605, 0.7939909100532532, 0.5185426473617554, 1.342571496963501]
+[0.832819938659668, 1.0292010307312012, 0.8891574144363403, 0.8358486294746399, 0.8920314311981201, 1.5466153621673584, 0.7209874391555786, 1.867094874382019, 0.9674910306930542, 1.5525954961776733, 0.8774644136428833, 0.9492793083190918, 0.9879025816917419, 1.0530754327774048, 0.8375238180160522, 1.305790901184082, 1.146350622177124, 0.943385124206543, 2.4638214111328125, 1.489574670791626]
+[0.6555683612823486, 1.2725508213043213, 2.88503098487854, 1.2898406982421875, 1.04325270652771, 1.4213464260101318, 1.0219144821166992, 0.8988469839096069, 1.3641438484191895, 0.6919663548469543, 1.5868273973464966, 1.2546284198760986, 0.8271336555480957, 0.717180609703064, 0.905025839805603, 0.9641025066375732, 0.8593686819076538, 1.0685293674468994, 1.186042070388794, 0.6150896549224854]
+[0.9570165872573853, 0.6398353576660156, 1.112987995147705, 1.1638054847717285, 1.3007385730743408, 0.9985361099243164, 0.8742295503616333, 1.537365198135376, 1.115065097808838, 0.7725163698196411, 0.6976044178009033, 0.9601412415504456, 1.0594961643218994, 1.5305551290512085, 1.132472038269043, 0.9018242359161377, 0.8086419701576233, 1.2034305334091187, 1.4790067672729492, 0.9757722616195679]
+[1.0644397735595703, 0.8372752666473389, 2.329590320587158, 1.037642240524292, 1.5854823589324951, 1.008110761642456, 0.8099802732467651, 0.6377123594284058, 0.9170498251914978, 1.3103528022766113, 0.7208948135375977, 1.4569454193115234, 0.7282124757766724, 0.8111268281936646, 0.8495797514915466, 0.8444268107414246, 0.7419267296791077, 0.8091114163398743, 0.4289846420288086, 0.9630357027053833]
+[1.2284196615219116, 1.1227271556854248, 2.0744025707244873, 0.9990960359573364, 2.1522955894470215, 0.7361040115356445, 1.105791687965393, 1.369964838027954, 1.1822692155838013, 1.5115630626678467, 1.1310579776763916, 0.841314435005188, 1.1412677764892578, 1.1466381549835205, 0.748227596282959, 1.3086944818496704, 0.8689540028572083, 0.9412451982498169, 1.0935062170028687, 0.6682673692703247]
+[0.8632243871688843, 1.0807393789291382, 1.14414381980896, 1.1029658317565918, 1.243715763092041, 1.3281608819961548, 1.0382994413375854, 0.9231852293014526, 0.9857921600341797, 1.3081281185150146, 1.0616405010223389, 0.882573127746582, 0.7337862253189087, 1.1510348320007324, 0.8190416693687439, 0.6978386044502258, 1.2531423568725586, 1.1361069679260254, 1.5449575185775757, 1.5319936275482178]
+[1.7123980522155762, 0.46520787477493286, 1.9099860191345215, 0.6912187337875366, 1.0497357845306396, 0.7862179279327393, 1.0475666522979736, 0.7443679571151733, 1.1849513053894043, 1.2485860586166382, 1.2501169443130493, 0.8902517557144165, 0.6360194683074951, 0.6952755451202393, 1.1824558973312378, 0.9864615201950073, 1.0602275133132935, 1.413865566253662, 1.4220921993255615, 1.161332607269287]
+[0.8901728391647339, 1.9026907682418823, 1.2273707389831543, 1.0863037109375, 1.0813870429992676, 1.5806735754013062, 1.4761865139007568, 1.1078100204467773, 0.9794797301292419, 1.3557991981506348, 1.1277830600738525, 1.1362504959106445, 1.0215017795562744, 1.694075584411621, 0.6591344475746155, 0.6820471286773682, 1.7386209964752197, 0.928222119808197, 1.1235970258712769, 1.4759328365325928]
+Using TensorFlow backend.
+/usr/local/lib/python3.6/dist-packages/sklearn/metrics/classification.py:1437: UndefinedMetricWarning: Precision and F-score are ill-defined and being set to 0.0 in labels with no predicted samples.
+  'precision', 'predicted', average, warn_for)
+--- Finished  ---
+Pseudo-terminal will not be allocated because stdin is not a terminal.
+Pseudo-terminal will not be allocated because stdin is not a terminal.
+Pseudo-terminal will not be allocated because stdin is not a terminal.

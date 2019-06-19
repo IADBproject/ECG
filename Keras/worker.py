@@ -5,7 +5,9 @@ import numpy as np
 import os, sys, time
 from keras.callbacks import*
 #from memory_profiler import profile
-
+from sklearn.metrics import confusion_matrix
+from sklearn.metrics import f1_score, precision_recall_fscore_support
+import pandas as pd
 class TrainHistory(keras.callbacks.Callback):
     def __init__(self):
         self.loss = None
@@ -23,7 +25,7 @@ class WorkerModeling(object):
         self.best_model_weights=None
         self.val_loss = None
         self.val_acc = None
-<<<<<<< HEAD
+
         self.loss = 0
         self.acc = 0
         self.step=0
@@ -34,7 +36,7 @@ class WorkerModeling(object):
         self.val_acc_list=[]
         self.label=[]
         self.pred=[]
-=======
+
         self.loss = 0.0
         self.acc = 0.0
         self.history = TrainHistory()
@@ -42,7 +44,6 @@ class WorkerModeling(object):
         self.acc_list=[]
         self.log_list=[]
         self.step=0
->>>>>>> 045e50863619c6565ee23dc79187de9b321c833f
 
     def load(self):
         self.model = model_from_json(self.model_json)
@@ -51,7 +52,6 @@ class WorkerModeling(object):
     #@profile(precision=4,stream=open('output/memory_profiler.log','w+'))
     def train(self,data,label,end_epoch):
         self.model.fit(x=data,y=label, epochs=1,callbacks=[self.history],verbose = 0)
-<<<<<<< HEAD
         self.loss+=self.history.loss
         self.acc+=self.history.acc
         self.step+=1
@@ -62,17 +62,6 @@ class WorkerModeling(object):
             self.acc=0
             self.loss=0
             self.step=0
-=======
-        self.loss += self.history.loss 
-        self.acc += self.history.acc
-        step +=1 
-        if end_epoch:
-            self.model_weights=self.model.get_weights()
-            self.loss_list.append(self.loss/step)
-            self.acc_list.append(self.acc/step)
-            step,self.loss,self.acc=0,0,0
-
->>>>>>> 045e50863619c6565ee23dc79187de9b321c833f
 
     #@profile(precision=4,stream=open('output/memory_profiler.log','w+'))
     def validate(self,data,label):
@@ -84,36 +73,33 @@ class WorkerModeling(object):
         if isTrain:
             self.model.set_weights(self.model_weights)
         else:
-<<<<<<< HEAD
+
             self.model.set_weights(self.best_model_weights)  
             #self.trainstats()
 
 
-    def trainstats(self,rank):
-        print("work rank",rank)
-        print("loss history",self.loss_list)
-        print("val loss history",self.val_loss_list)
-        print("---------------")
-=======
-            self.model.set_weights(self.best_model_weights)
-              
->>>>>>> 045e50863619c6565ee23dc79187de9b321c833f
-
     #@profile(precision=4,stream=open('output/memory_profiler.log','w+'))
     def test(self,data):
         prediction=self.model.predict(data)
-        self.label.append(data)
         self.pred.append(prediction)
         return prediction
 
-    def predictstats(self,rank):
+
+    def trainstats(self,rank,host):
+       
+        #print("---------------")
+      
         pred=np.vstack(self.pred)
         label=np.vstack(self.label)
-        print("work rank",rank)
+        #print("pred",pred)
+        #print("label",label)
         pred =  np.argmax(pred, axis = 1)
         label =  np.argmax(label, axis = 1)
         labels, counts = np.unique(label, return_counts = True)
 
+        #print("pred",pred)
+        #print("label",label)
+        #return 0
         conf_matrix = confusion_matrix(label, pred, labels)
         true_positive = np.diag(conf_matrix)
         false_negative = []
@@ -122,7 +108,7 @@ class WorkerModeling(object):
             false_positive.append(int(sum(conf_matrix[:,i]) - conf_matrix[i,i]))
             false_negative.append(int(sum(conf_matrix[i,:]) - conf_matrix[i,i]))
         pred_acc = f1_score(y_true=label, y_pred=pred, average='micro')
-        print("test acc:",pred_acc)
+        print("work rank",rank,"test acc:",pred_acc)
         precision, recall, F1_score, support = precision_recall_fscore_support(label,pred, average = None)
 
         for i in range(len(labels)):
@@ -139,8 +125,19 @@ class WorkerModeling(object):
         metrics_values = np.transpose(metrics_values)
         metrics_values = pd.DataFrame(metrics_values, columns = ["Labels", "TP", "FN", "FP",
                                     "Precision", "Recall", "F1 Score", "Records by Labels"])
-        print("{}".format(metrics_values))
-        print("---------------")
+        #print("work rank",rank,"\n {}".format(metrics_values))
+        #print("---------------")
+        filename=str('output/worker/host_'+str(host)+'_rank_'+str(rank)+'_train.txt') 
+        wfile = open(filename,'w')
+        filename1=str('output/worker/host_'+str(host)+'_rank_'+str(rank)+'_train_loss.txt')
+        wtfile = open(filename1,'w')
+        filename2=str('output/worker/host_'+str(host)+'_rank_'+str(rank)+'_val_loss.txt')
+        wvfile = open(filename2,'w')
+
+        print(self.loss_list,file=wtfile)
+        print(self.val_loss_list,file=wvfile)
+        print("test acc:",pred_acc,file=wfile)
+        print(" {}".format(metrics_values),file=wfile)
 
 
 

@@ -3,36 +3,28 @@ from worker import *
 from mpi4py import MPI
 import time, math
 from collections import Iterable
-<<<<<<< HEAD
+
 #from memory_profiler import profile
 
 #@profile
-=======
-from memory_profiler import profile
 
-@profile(precision=4,stream=open('output/memory_profiler.log','w+'))
->>>>>>> 045e50863619c6565ee23dc79187de9b321c833f
+#@profile(precision=4,stream=open('output/memory_profiler.log','w+'))
+
 def main():
     comm = MPI.COMM_WORLD
     size = comm.Get_size()
     rank = comm.Get_rank()
-<<<<<<< HEAD
-    epochs = 2
-    batch_size = 8
-
-    
+    myhost = MPI.Get_processor_name()
+    filename=str('output/worker/host_'+str(myhost)+'_rank_'+str(rank)+'_train.txt')
+    wfile = open(filename,'w')
+    wfile.close()
+    epochs = 5
+    batch_size = 8       
     if rank==0:
-        #main_file = open('output/main_data.txt','w')
-=======
-    epochs = 4
-    batch_size = 4
-
-    
-    if rank==0:
->>>>>>> 045e50863619c6565ee23dc79187de9b321c833f
         modeling,train_next_batch_gen,val_next_batch_gen,test_next_batch_gen,train_step,val_step,\
         test_step=mastermain((size-1),batch_size)
-    print(train_step,val_step,test_step)
+        #print(train_step,val_step,test_step)
+        print("epochs:",epochs,file=modeling.main_file)
     #atime=time.time()
     if rank==0:
         for i in range(1, size):
@@ -110,7 +102,7 @@ def main():
                 w.append(comm.recv(source=i))
             modeling.update(w,sub_time,e)
         else:
-            comm.send([val_loss,val_acc,modeling.loss_list[-1],modeling.acc_list[-1], dest=0)
+            comm.send([val_loss,val_acc,modeling.loss_list[-1],modeling.acc_list[-1]], dest=0)
             modeling.val_loss_list.append(val_loss)
             modeling.val_acc_list.append(val_acc)
     end = time.time()
@@ -118,11 +110,8 @@ def main():
     ####testing
     if rank==0:
         print("training time :",end-fit)
-<<<<<<< HEAD
+        modeling.training_time=end-fit
         #print("training time :",end-fit,file=main_file)
-=======
-        print("training time :",end-fit,file=modeling.main_file)
->>>>>>> 045e50863619c6565ee23dc79187de9b321c833f
         for i in range(1, size):
             comm.send(modeling.best_model_weights, dest=i)
     else:
@@ -139,6 +128,7 @@ def main():
         else:
             data,label=comm.recv(source=0)
             pred = modeling.test(data)
+            modeling.label.append(label)
 
         if rank==0:
             for i in range(1, size):
@@ -156,19 +146,13 @@ def main():
         for i in range(1, size):
             w.append(comm.recv(source=i))
         modeling.savestat(w)
-<<<<<<< HEAD
-        #main_file.close()
-=======
-        modeling.main_file.close()
->>>>>>> 045e50863619c6565ee23dc79187de9b321c833f
     else:
         comm.send(modeling.loss_list, dest=0)
-        modeling.trainstats(rank)
-        modeling.predictstats(rank)
+    time.sleep(60)
+    if rank!=0:
+        modeling.trainstats(rank,myhost)
+        #modeling.predictstats(rank)
 
 if __name__ == '__main__':
-<<<<<<< HEAD
+
     main()
-=======
-    main()
->>>>>>> 045e50863619c6565ee23dc79187de9b321c833f

@@ -36,18 +36,15 @@ class Data(object):
         self.batch_size = batch_size
         self.size = size
         self.datapreposessing()
+      
 
     def readdata(self,xdata,ydata):
         self.X = np.load(xdata)
         self.Y = np.load(ydata)
-<<<<<<< HEAD
-        self.X = self.X[:2800]
-        self.Y = self.Y[:2800]
-=======
-        self.X = self.X[:500]
-        self.Y = self.Y[:500]
->>>>>>> 045e50863619c6565ee23dc79187de9b321c833f
+        self.X = self.X[:1000]
+        self.Y = self.Y[:1000]
         self.Y=pd.get_dummies(self.Y).values
+
 
     def datapreposessing(self):
         self.X_train, self.X_test, self.Y_train, self.Y_test = train_test_split(self.X,
@@ -80,7 +77,7 @@ class Data(object):
 
 
 class MasterModeling(object):
-    def __init__(self,dataset,main_file):
+    def __init__(self,dataset):
         self.dataset = dataset
         self.model = Model
         self.model_json=None
@@ -91,7 +88,14 @@ class MasterModeling(object):
         self.acc_list=[]
         self.val_loss_list=[]
         self.val_acc_list=[]
-        self.main_file=main_file
+        self.main_file=open('output/main_data.txt','w')
+        print("ECG MPI  with threads",(self.dataset.size+1),file=self.main_file)
+        print("batch_size:",self.dataset.batch_size,file=self.main_file)
+        print("train:",len(self.dataset.X_train),file=self.main_file)
+        print("validation:",len(self.dataset.X_validation),file=self.main_file)
+        print("test:",len(self.dataset.X_test),file=self.main_file)
+
+        
     
     #@profile(precision=4,stream=open('output/memory_profiler.log','w+'))
     def create(self):
@@ -178,16 +182,13 @@ class MasterModeling(object):
 
         msg="Epoch Info:{0},Train Acc:{1:>5.4},Train Loss:{2:>5.4},Val Acc:{3:>5.4},Val Loss:{4:>5.4} --- Time:{5}s"
         print(msg.format(epoch + 1, new_score[3],new_score[2], new_score[1],new_score[0], time.time()-times))
-<<<<<<< HEAD
-        #print(msg.format(epoch + 1, new_score[3],new_score[2], new_score[1],new_score[0], time.time()-times),file=main_file)
-=======
-        print(msg.format(epoch + 1, new_score[3],new_score[2], new_score[1],new_score[0], time.time()-times),self.main_file)
+
+        print(msg.format(epoch + 1, new_score[3],new_score[2], new_score[1],new_score[0], time.time()-times),file=self.main_file)
         
->>>>>>> 045e50863619c6565ee23dc79187de9b321c833f
 
     #@profile(precision=4,stream=open('output/memory_profiler.log','w+'))
     def predict(self,pred,label,ltime):
-
+        print("-----Total-----")
         pred=np.vstack(pred)
         label=np.vstack(label)
         pred =  np.argmax(pred, axis = 1)
@@ -221,32 +222,18 @@ class MasterModeling(object):
                                     "Precision", "Recall", "F1 Score", "Records by Labels"])
         print("{}".format(metrics_values))
         print("testing time :",time.time()-ltime)
+        self.testing_time=time.time()-ltime
         m_file = open('output/F1_data.txt','w')
         print("{}".format(metrics_values),file=m_file)
         m_file.close()
-<<<<<<< HEAD
+        print("-----Total------")
+       
         #print("testing time :",time.time()-ltime,file=main_file)
 
 
-    def savestat(self,losses_list):
-        #print("sub training loss")
-        main_file = open('output/Loss_data.txt','w')
-        print("sub training loss",file=main_file)
-        for i in range(len(losses_list)):
-            loss_list_sub = losses_list[i]
-            #print(loss_list_sub)
-            print(loss_list_sub,file=main_file)
-        #print("total training loss \n",self.loss_list)
-        #print("val loss \n",self.val_loss_list)
-        print("total training loss \n",self.loss_list,file=main_file)
-        print("val loss \n",self.val_loss_list,file=main_file)
-        main_file.close()
-=======
-        
-
 
     def savestat(self,losses_list):
-        loss_file = open('output/loss_data.txt','w')
+        loss_file = open('output/total_loss_data.txt','w')
         print("sub training loss",file=loss_file)
         for i in range(len(losses_list)):
             loss_list_sub = losses_list[i]
@@ -254,11 +241,19 @@ class MasterModeling(object):
         print("total training loss \n",self.loss_list,file=loss_file)
         print("val loss \n",self.val_loss_list,file=loss_file)
         loss_file.close()
-
->>>>>>> 045e50863619c6565ee23dc79187de9b321c833f
+        losst_file = open('output/train_loss_data.txt','w')
+        print(self.loss_list,file=losst_file)
+        losst_file.close()
+        losstmp_file = open('output/val_loss_data.txt','w')
+        print(self.val_loss_list,file=losstmp_file)
+        losstmp_file.close()
+        print("Dataset preparing time :",self.dataset_time,file=self.main_file)
+        print("training time :",self.training_time,file=self.main_file)
+        print("testing time :",self.testing_time,file=self.main_file)
+        self.main_file.close()
 
 def mastermain(size,batch_size,data='./../input/xdata.npy',label='./../input/ydata.npy'):
-    main_file = open('output/main_data.txt','w')
+    #main_file = open('output/main_data.txt','w')
     start=time.time()
     data=Data(data,label,batch_size,size)
 	
@@ -268,13 +263,13 @@ def mastermain(size,batch_size,data='./../input/xdata.npy',label='./../input/yda
     train_step = data.getstep(data.X_train)
     val_step = data.getstep(data.X_validation)
     test_step = data.getstep(data.X_test)
-    print(len(data.X_train),len(data.X_validation),len(data.X_test))
-    print('Dataset preparing --- Time:',time.time()-start)
-    print('Dataset preparing --- Time:',time.time()-start,file=main_file)
-    
-    modeling=MasterModeling(data,main_file)
+    #print(len(data.X_train),len(data.X_validation),len(data.X_test))
+    #print('Dataset preparing --- Time:',time.time()-start,file=main_file)
+ 
+    modeling=MasterModeling(data)
     modeling.create()
-
+    modeling.dataset_time=time.time()-start
+    print('Dataset preparing --- Time:',time.time()-start)
     return modeling,train_next_batch_gen,val_next_batch_gen,\
     test_next_batch_gen,train_step,val_step,test_step
 

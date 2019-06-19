@@ -14,7 +14,7 @@ DATA=`date +%Y%m%d%H%M`
 ARGV=$APP-$MPI_NPROC-$DATA
 mkdir $Dir/$ARGV
 mkdir output
-
+mkdir output/worker
 ## Global parameters for distributed computing
 Dir_remote=cloud/ECG/enerGyPU/testbed/
 IP_hosts=("134.59.132.111" "134.59.132.116" "134.59.132.23")
