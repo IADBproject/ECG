@@ -23,6 +23,7 @@ class WorkerModeling(object):
         self.best_model_weights=None
         self.val_loss = None
         self.val_acc = None
+<<<<<<< HEAD
         self.loss = 0
         self.acc = 0
         self.step=0
@@ -33,6 +34,15 @@ class WorkerModeling(object):
         self.val_acc_list=[]
         self.label=[]
         self.pred=[]
+=======
+        self.loss = 0.0
+        self.acc = 0.0
+        self.history = TrainHistory()
+        self.loss_list=[]
+        self.acc_list=[]
+        self.log_list=[]
+        self.step=0
+>>>>>>> 045e50863619c6565ee23dc79187de9b321c833f
 
     def load(self):
         self.model = model_from_json(self.model_json)
@@ -41,6 +51,7 @@ class WorkerModeling(object):
     #@profile(precision=4,stream=open('output/memory_profiler.log','w+'))
     def train(self,data,label,end_epoch):
         self.model.fit(x=data,y=label, epochs=1,callbacks=[self.history],verbose = 0)
+<<<<<<< HEAD
         self.loss+=self.history.loss
         self.acc+=self.history.acc
         self.step+=1
@@ -51,6 +62,17 @@ class WorkerModeling(object):
             self.acc=0
             self.loss=0
             self.step=0
+=======
+        self.loss += self.history.loss 
+        self.acc += self.history.acc
+        step +=1 
+        if end_epoch:
+            self.model_weights=self.model.get_weights()
+            self.loss_list.append(self.loss/step)
+            self.acc_list.append(self.acc/step)
+            step,self.loss,self.acc=0,0,0
+
+>>>>>>> 045e50863619c6565ee23dc79187de9b321c833f
 
     #@profile(precision=4,stream=open('output/memory_profiler.log','w+'))
     def validate(self,data,label):
@@ -62,6 +84,7 @@ class WorkerModeling(object):
         if isTrain:
             self.model.set_weights(self.model_weights)
         else:
+<<<<<<< HEAD
             self.model.set_weights(self.best_model_weights)  
             #self.trainstats()
 
@@ -71,6 +94,10 @@ class WorkerModeling(object):
         print("loss history",self.loss_list)
         print("val loss history",self.val_loss_list)
         print("---------------")
+=======
+            self.model.set_weights(self.best_model_weights)
+              
+>>>>>>> 045e50863619c6565ee23dc79187de9b321c833f
 
     #@profile(precision=4,stream=open('output/memory_profiler.log','w+'))
     def test(self,data):

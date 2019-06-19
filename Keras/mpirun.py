@@ -3,19 +3,33 @@ from worker import *
 from mpi4py import MPI
 import time, math
 from collections import Iterable
+<<<<<<< HEAD
 #from memory_profiler import profile
 
 #@profile
+=======
+from memory_profiler import profile
+
+@profile(precision=4,stream=open('output/memory_profiler.log','w+'))
+>>>>>>> 045e50863619c6565ee23dc79187de9b321c833f
 def main():
     comm = MPI.COMM_WORLD
     size = comm.Get_size()
     rank = comm.Get_rank()
+<<<<<<< HEAD
     epochs = 2
     batch_size = 8
 
     
     if rank==0:
         #main_file = open('output/main_data.txt','w')
+=======
+    epochs = 4
+    batch_size = 4
+
+    
+    if rank==0:
+>>>>>>> 045e50863619c6565ee23dc79187de9b321c833f
         modeling,train_next_batch_gen,val_next_batch_gen,test_next_batch_gen,train_step,val_step,\
         test_step=mastermain((size-1),batch_size)
     print(train_step,val_step,test_step)
@@ -104,7 +118,11 @@ def main():
     ####testing
     if rank==0:
         print("training time :",end-fit)
+<<<<<<< HEAD
         #print("training time :",end-fit,file=main_file)
+=======
+        print("training time :",end-fit,file=modeling.main_file)
+>>>>>>> 045e50863619c6565ee23dc79187de9b321c833f
         for i in range(1, size):
             comm.send(modeling.best_model_weights, dest=i)
     else:
@@ -138,11 +156,19 @@ def main():
         for i in range(1, size):
             w.append(comm.recv(source=i))
         modeling.savestat(w)
+<<<<<<< HEAD
         #main_file.close()
+=======
+        modeling.main_file.close()
+>>>>>>> 045e50863619c6565ee23dc79187de9b321c833f
     else:
         comm.send(modeling.loss_list, dest=0)
         modeling.trainstats(rank)
         modeling.predictstats(rank)
 
 if __name__ == '__main__':
+<<<<<<< HEAD
     main()
+=======
+    main()
+>>>>>>> 045e50863619c6565ee23dc79187de9b321c833f
