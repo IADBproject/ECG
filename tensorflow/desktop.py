@@ -3,25 +3,29 @@ import pandas as pd
 import numpy as np
 import math
 import os, sys, time
+#import matplotlib
+#matplotlib.use("Agg")
+#import matplotlib.pyplot as plt
 import getopt
 from sklearn.model_selection import train_test_split
 import random
 from sklearn.metrics import confusion_matrix,f1_score, precision_recall_fscore_support
+
 pd.set_option('display.max_columns', None)
 
 
 xdata= './../input/xdata.npy'
 ylabel='./../input/ydata.npy'
-batch_size =4
-epochs= 3
+batch_size =16
+epochs= 30
 learning_rate= 0.001
 
 class Data(object):
     def readdata(self,xdata,ydata):
         self.X = np.load(xdata)
         self.Y = np.load(ydata)
-        self.Y = self.Y[:500]
-        self.X = self.X[:500]
+        #self.Y = self.Y[:500]
+        #self.X = self.X[:500]
         self.Y = pd.get_dummies(self.Y).to_numpy()
 
     def datapreposessing(self):
@@ -76,34 +80,29 @@ class Modeling(object):
         self.best_validation_loss=9999
         self.reuse=False
         self.train()
-            
-    def relu(self,x,size):
-        b = tf.Variable(tf.random_normal([size],stddev=0.1), dtype=tf.float32)
-        x = tf.nn.bias_add(x, b)
-        return tf.nn.relu(x)
 
             
     def r_block(self,in_layer,k,is_training):
         x = tf.layers.batch_normalization(in_layer)
-        x = self.relu(x,64*k)
+        x = tf.nn.relu(x)
         x = tf.layers.dropout(x, rate=0.2, training=is_training)
-        x = tf.layers.conv1d(x,64*k,16,padding='same',activation=tf.nn.relu)
+        x = tf.layers.conv1d(x,64*k,16,padding='same',kernel_initializer=tf.glorot_uniform_initializer())
         x = tf.layers.batch_normalization(x)
-        x = self.relu(x,64*k)
+        x = tf.nn.relu(x)
         x = tf.layers.dropout(x, rate=0.2, training=is_training)
-        x = tf.layers.conv1d(x,64*k,16,padding='same')
+        x = tf.layers.conv1d(x,64*k,16,padding='same',kernel_initializer=tf.glorot_uniform_initializer())
         x = tf.add(x,in_layer)
         return x
 
     def subsampling_r_block(self,in_layer,k,is_training):
         x = tf.layers.batch_normalization(in_layer)
-        x = self.relu(x,64*k)
+        x = tf.nn.relu(x)
         x = tf.layers.dropout(x, rate=0.2, training=is_training)
-        x = tf.layers.conv1d(x,64*k,16,padding='same',activation=tf.nn.relu)
+        x = tf.layers.conv1d(x,64*k,16,kernel_initializer=tf.glorot_uniform_initializer(),padding='same')
         x = tf.layers.batch_normalization(x)
-        x = self.relu(x,64*k)
+        x = tf.nn.relu(x)
         x = tf.layers.dropout(x, rate=0.2, training=is_training)
-        x = tf.layers.conv1d(x, 64*k, 1, strides=2)
+        x = tf.layers.conv1d(x, 64*k, 1, strides=2,kernel_initializer=tf.glorot_uniform_initializer())
         pool = tf.layers.max_pooling1d(in_layer,1,strides=2)
         x = tf.add(x,pool)
         return x
@@ -112,16 +111,16 @@ class Modeling(object):
         # Define a scope for reusing the variables
         with tf.variable_scope('ConvNet', reuse=self.reuse): 
 
-            act1 = tf.layers.conv1d(x, 64, 16, padding='same')
+            act1 = tf.layers.conv1d(x, 64, 16, padding='same',kernel_initializer=tf.glorot_uniform_initializer())
             x = tf.layers.batch_normalization(act1)
-            x = self.relu(x,64)
+            x = tf.nn.relu(x)
 
-            x = tf.layers.conv1d(x, 64, 16, padding='same')
+            x = tf.layers.conv1d(x, 64, 16, padding='same',kernel_initializer=tf.glorot_uniform_initializer())
             x = tf.layers.batch_normalization(x)
-            x = self.relu(x,64)
+            x = tf.nn.relu(x)
 
             x = tf.layers.dropout(x, rate=0.2, training=is_training)
-            x1 = tf.layers.conv1d(x, 64, 1, strides=2)
+            x1 = tf.layers.conv1d(x, 64, 1, strides=2,kernel_initializer=tf.glorot_uniform_initializer())
 
             x2 = tf.layers.max_pooling1d(act1,2,strides=2)
             x = tf.add(x1,x2)
@@ -130,14 +129,14 @@ class Modeling(object):
             for i in range(1,9,1):
                 if i%2 ==0:
                     k+=1
-                x=tf.layers.conv1d(x,64*k,16,padding='same')
+                x=tf.layers.conv1d(x,64*k,16,padding='same',kernel_initializer=tf.glorot_uniform_initializer())
                 x=self.r_block(x,k,is_training)
                 x=self.subsampling_r_block(x,k,is_training)
 
             x = tf.layers.batch_normalization(x)
-            x = self.relu(x,64*k)
-            x = tf.contrib.layers.flatten(x)
-            out = tf.layers.dense(x, 4)
+            x = tf.nn.relu(x)
+            x = tf.layers.flatten(x)
+            out = tf.layers.dense(x, 4,kernel_initializer=tf.glorot_uniform_initializer())
         return out
 
 
@@ -177,6 +176,9 @@ class Modeling(object):
                                     feed_dict={X: data, Y: label, is_training: True})
                     acc+=acct/n_batches
                     loss+=losst/n_batches
+                #output =sess.run(trainmodel, 
+                #                    feed_dict={X: data, is_training: True})
+                #print("trainmodel {}".format(output))
                 self.reuse=True
                 for t in  range(n_valbatches):
                     j = min((t+1 )* self.batch_size, len(self.dataset.Y_validation))
@@ -229,7 +231,8 @@ class Modeling(object):
         for i in range(len(conf_matrix)):
             false_positive.append(int(sum(conf_matrix[:,i]) - conf_matrix[i,i]))
             false_negative.append(int(sum(conf_matrix[i,:]) - conf_matrix[i,i]))
-        
+        pred_acc = f1_score(y_true=label, y_pred=pred, average='micro')
+        print("test acc:",pred_acc)
         precision, recall, F1_score, support = precision_recall_fscore_support(label,pred, average = None)
 
         for i in range(len(labels)):
@@ -247,7 +250,6 @@ class Modeling(object):
         metrics_values = pd.DataFrame(metrics_values, columns = ["Labels", "TP", "FN", "FP",
                                     "Precision", "Recall", "F1 Score", "Records by Labels"])
         print("{}".format(metrics_values))
-
 
 def main():
 
