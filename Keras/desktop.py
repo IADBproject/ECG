@@ -21,8 +21,8 @@ pd.set_option('display.max_columns', None)
 
 xdata= './../input/xdata.npy'
 ylabel='./../input/ydata.npy'
-batch_size =4
-epochs= 5
+batch_size =8
+epochs= 20
 
 class Data(object):
     def __init__(self,xdata,ydata):
@@ -44,8 +44,8 @@ class Data(object):
     def readdata(self,xdata,ydata):
         self.X = np.load(xdata)
         self.Y = np.load(ydata)
-        self.X = self.X[:500]
-        self.Y = self.Y[:500]
+        #self.X = self.X[:500]
+        #self.Y = self.Y[:500]
         self.Y=pd.get_dummies(self.Y).values
 
     def datapreposessing(self):
@@ -203,9 +203,13 @@ class Modeling(object):
         metrics_values = pd.DataFrame(metrics_values, columns = ["Labels", "TP", "FN", "FP",
                                     "Precision", "Recall", "F1 Score", "Records by Labels"])
         print("{}".format(metrics_values))
+        m_file = open('output/keras_F1_data.txt','w')
+        print("{}".format(metrics_values),file=m_file)
+        m_file.close()
 
 
-    def plot(self):
+
+    def stats(self):
 
         loss_list = [s for s in self.history.history.keys() if 'loss' in s and 'val' not in s]
         val_loss_list = [s for s in self.history.history.keys() if 'loss' in s and 'val' in s]
@@ -215,54 +219,19 @@ class Modeling(object):
         if len(loss_list) == 0:
             print('Loss is missing in history')
             return
-
         epochs = range( 1, len(self.history.history[loss_list[0]]) + 1 )
 
-        plt.figure(1)
+        m_file = open('output/keras_train_loss_data.txt','w')
+        mv_file = open('output/keras_val_loss_data.txt','w')
+        
     
         for l in loss_list:
-            plt.plot( epochs,
-                      self.history.history[l],
-                      'b',
-                      label = 'Training loss (' + str( str( format( self.history.history[l][-1],'.5f' ) ) + ')' )
-                    )
-
+            print(self.history.history[l],file=m_file)
+        m_file.close()
         for l in val_loss_list:
-            plt.plot( epochs,
-                      self.history.history[l],
-                      'g',
-                      label = 'Validation loss (' + str ( str( format( self.history.history[l][-1],'.5f' ) ) + ')' )
-                    )
+            print(self.history.history[l],file=mv_file)
+        mv_file.close()
 
-        plt.title('Loss per Epoch')
-        plt.xlabel('Epochs')
-        plt.ylabel('Loss')
-        plt.legend()
-
-        plt.savefig( 'loss.png', bbox_inches='tight' )
-
-        plt.figure(2)
-        for l in acc_list:
-            plt.plot( epochs,
-                      self.history.history[l],
-                      'b',
-                      label = 'Training accuracy (' + str( format( self.history.history[l][-1],'.5f' ) ) + ')'
-                    )
-
-        for l in val_acc_list:
-            plt.plot( epochs,
-                      self.model.history.history[l],
-                      'g',
-                      label = 'Validation accuracy (' + str( format( self.history.history[l][-1],'.5f' ) ) + ')'
-                    )
-
-        plt.title('Accuracy per Epoch')
-        plt.xlabel('Epochs')
-        plt.ylabel('Accuracy')
-        plt.legend()
-
-        plt.savefig( 'accuracy.png', bbox_inches='tight' )
-        plt.close()
 
 
 
@@ -280,7 +249,7 @@ def main():
     end = time.time()
     model.predict()
     end_evaluate = time.time()
-    #model.plot()
+    model.stats()
 
     print('Time to load data:', end_data-start)
     print('Time to fit data:', end-fit)
