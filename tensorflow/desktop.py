@@ -135,7 +135,7 @@ class Modeling(object):
 
             x = tf.layers.batch_normalization(x)
             x = tf.nn.relu(x)
-            x = tf.layers.flatten(x)
+            x = tf.contrib.layers.flatten(x)
             out = tf.layers.dense(x, 4,kernel_initializer=tf.glorot_uniform_initializer())
         return out
 
@@ -215,6 +215,12 @@ class Modeling(object):
             print('Predict loss:', loss_test)
             print('Predict accuracy:', acc_test)
             self.predict(pred)
+            m_file = open('output/tensorflow_train_loss_data.txt','w')
+            print(self.loss_list,file=m_file)
+            m_file.close()
+            mv_file = open('output/tensorflow_val_loss_data.txt','w')
+            print(self.val_loss_list,file=mv_file)
+            mv_file.close()
 
 
     def predict(self,pred):
@@ -250,6 +256,9 @@ class Modeling(object):
         metrics_values = pd.DataFrame(metrics_values, columns = ["Labels", "TP", "FN", "FP",
                                     "Precision", "Recall", "F1 Score", "Records by Labels"])
         print("{}".format(metrics_values))
+        m_file = open('output/tensorflow_F1_data.txt','w')
+        print("{}".format(metrics_values),file=m_file)
+        m_file.close()
 
 def main():
 

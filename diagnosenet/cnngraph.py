@@ -84,7 +84,7 @@ class CNNGraph:
 
             x = tf.layers.batch_normalization(x)
             x = tf.nn.relu(x)
-            x = tf.layers.flatten(x)
+            x = tf.contrib.layers.flatten(x)
             out = tf.layers.dense(x, 4,kernel_initializer=tf.glorot_uniform_initializer())
         return out
 

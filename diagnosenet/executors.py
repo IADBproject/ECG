@@ -444,7 +444,7 @@ class MultiGPU:
 
             x = tf.layers.batch_normalization(x)
             x = tf.nn.relu(x)
-            x = tf.layers.flatten(x)
+            x = tf.contrib.layers.flatten(x)
             out = tf.layers.dense(x, 4,kernel_initializer=tf.glorot_uniform_initializer())
         return out
 
@@ -481,7 +481,7 @@ class MultiGPU:
                 
 
                 for igpu in range(self.num_gpus):
-                    with tf.device(self.assign_to_device('/gpu:{}'.format(igpu))):
+                    with tf.device('/gpu:{}'.format(igpu)):
                             # tf.variable_scope.reuse_variables()
                             # Split data between GPUs
                             _X = X[(igpu * self.gpu_batch_size):
