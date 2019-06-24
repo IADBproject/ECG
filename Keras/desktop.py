@@ -22,8 +22,8 @@ pd.set_option('display.max_columns', None)
 xdata= './../input/xdata.npy'
 ylabel='./../input/ydata.npy'
 batch_size =8
-epochs= 20
-lr=0.001
+epochs= 30
+lr=0.0001
 
 class Data(object):
     def __init__(self,xdata,ydata):
