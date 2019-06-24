@@ -23,6 +23,7 @@ xdata= './../input/xdata.npy'
 ylabel='./../input/ydata.npy'
 batch_size =8
 epochs= 20
+lr=0.001
 
 class Data(object):
     def __init__(self,xdata,ydata):
@@ -90,7 +91,8 @@ class Modeling(object):
 
     def load(self, received_model):
         self.model = model_from_json(received_model)
-        self.model.compile(loss='categorical_crossentropy', optimizer='Adam', metrics=['acc','mae'])
+        adamopt=Adam(lr=lr)
+        self.model.compile(loss='categorical_crossentropy', optimizer=adamopt, metrics=['acc','mae'])
 
     def train(self):
         config = tf.ConfigProto(allow_soft_placement=True)
@@ -166,8 +168,9 @@ class Modeling(object):
         x=Flatten()(x)
         dense=Dense(4,activation='softmax')(x)
         self.model=Model(inputs=ins,outputs=dense)
-        self.model.summary()
-        self.model.compile(optimizer='Adam',loss='categorical_crossentropy',metrics=['acc','mae'])
+        #self.model.summary()
+        adamopt=Adam(lr=lr)
+        self.model.compile(optimizer=adamopt,loss='categorical_crossentropy',metrics=['acc','mae'])
 
 
     def predict(self):
@@ -231,7 +234,12 @@ class Modeling(object):
         for l in val_loss_list:
             print(self.history.history[l],file=mv_file)
         mv_file.close()
+        
+        for i in epochs:
+            training_track.append((i,self.history.history[loss_list[0]][i-1],self.history.history[val_loss_list[0]][i-1],self.history.history[acc_list[0]][i-1],self.history.history[val_acc_list[0]][i-1]))
 
+        with open('output/keras_train_data.txt', 'w') as f:
+            f.write('\n'.join('%s, %s, %s, %s, %s' % x for x in training_track))
 
 
 
