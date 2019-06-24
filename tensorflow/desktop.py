@@ -80,6 +80,7 @@ class Modeling(object):
         self.best_validation_loss=9999
         self.reuse=False
         self.train()
+        self.training_track=[]
 
             
     def r_block(self,in_layer,k,is_training):
@@ -196,6 +197,7 @@ class Modeling(object):
 
                 msg = "Iter: {0}, Train Accuracy: {1:.4},Train Loss: {2:.4}, Validation Acc: {3:.4}, Validation Loss: {4:.4} ---Time: {5:.4} {6}"
                 print(msg.format(i + 1, acc,loss, val_acc,val_loss,time.time()-estart, improved_str))
+                self.training_track.append((i + 1,loss, val_loss, acc, val_acc, np.round(time.time()-estart, decimals=4)))
                 self.loss_list.append(loss)
                 self.val_loss_list.append(val_loss)
 
@@ -221,6 +223,9 @@ class Modeling(object):
             mv_file = open('output/tensorflow_val_loss_data.txt','w')
             print(self.val_loss_list,file=mv_file)
             mv_file.close()
+            mt_file = open('output/tensorflow_train_data.txt','w')            
+            print(self.training_track,file=mt_file)
+            mt_file.close()
 
 
     def predict(self,pred):
