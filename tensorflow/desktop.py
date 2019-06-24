@@ -79,8 +79,8 @@ class Modeling(object):
         self.val_loss_list=[]
         self.best_validation_loss=9999
         self.reuse=False
-        self.train()
         self.training_track=[]
+        self.train()
 
             
     def r_block(self,in_layer,k,is_training):
@@ -150,7 +150,7 @@ class Modeling(object):
 
             trainmodel = self.conv_net(X, is_training)
            
-            loss_op = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(logits=trainmodel, labels=Y))
+            loss_op = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=trainmodel, labels=Y))
             train_op = tf.train.AdamOptimizer(learning_rate=self.learning_rate).minimize(loss_op)
             accuracy = tf.reduce_mean(tf.cast(tf.equal(tf.argmax(trainmodel, 1), tf.argmax(Y, 1)), tf.float32))
 
