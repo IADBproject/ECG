@@ -266,24 +266,24 @@ class enerGyPU(Testbed):
         Launches a subprocess for recording the global GPU factors
         to power consumption measures.
         """
-        #sp.run(["../enerGyPU/dataCapture/enerGyPU_record-jetson.sh", self.testbed_exp, self.exp_id])
+        sp.run(["../enerGyPU/dataCapture/enerGyPU_record.sh", self.testbed_exp, self.exp_id])
 
     def end_power_recording(self) -> None:
         """
         Kill the subprocess enerGyPU_record.
         """
-        #sp.call(["killall", "-9", "nvidia-smi"])
+        sp.call(["killall", "-9", "nvidia-smi"])
 
     def start_platform_recording(self, pid) -> None:
         """
         Subprocess recording for memory and cpu usage while the models are training
         This function uses the library psutil-5.4.8
         """
-        #self.proc_platform = sp.Popen(["python3.6", "../enerGyPU/dataCapture/platform_record.py",
-        #                        str(pid), self.testbed_exp, self.exp_id])
+        self.proc_platform = sp.Popen(["python3.6", "../enerGyPU/dataCapture/platform_record.py",
+                                str(pid), self.testbed_exp, self.exp_id])
 
     def end_platform_recording(self) -> None:
         """
         Send signal to kill platform recording process
         """
-        #self.proc_platform.kill()
+        self.proc_platform.kill()
