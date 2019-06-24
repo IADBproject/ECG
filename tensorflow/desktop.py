@@ -223,9 +223,9 @@ class Modeling(object):
             mv_file = open('output/tensorflow_val_loss_data.txt','w')
             print(self.val_loss_list,file=mv_file)
             mv_file.close()
-            mt_file = open('output/tensorflow_train_data.txt','w')            
-            print(self.training_track,file=mt_file)
-            mt_file.close()
+            with open('output/keras_train_data.txt', 'w') as f:
+            f.write('\n'.join('%s, %s, %s, %s, %s, %s' % x for x in self.training_track))
+
 
 
     def predict(self,pred):
