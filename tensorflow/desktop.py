@@ -16,9 +16,9 @@ pd.set_option('display.max_columns', None)
 
 xdata= './../input/xdata.npy'
 ylabel='./../input/ydata.npy'
-batch_size =16
+batch_size =8
 epochs= 30
-learning_rate= 0.001
+learning_rate= 0.0001
 
 class Data(object):
     def readdata(self,xdata,ydata):
