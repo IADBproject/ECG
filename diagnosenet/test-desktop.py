@@ -15,9 +15,9 @@ targets=pd.get_dummies(targets).values
 
 model = CNNGraph(input_size_1=1300,input_size_2=1, output_size=4,
                         loss=CrossEntropy,
-                        optimizer=Adam(lr=0.001))
+                        optimizer=Adam(lr=0.0001))
 
-projection = DesktopExecution(model, max_epochs=20,batch_size=8)
+projection = DesktopExecution(model, max_epochs=30,batch_size=8)
 projection.training_memory(inputs, targets)
 
 print("Execution Time: {}".format((time.time()-execution_start)))
