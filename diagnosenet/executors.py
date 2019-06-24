@@ -220,7 +220,8 @@ class DesktopExecution:
         Uses Testbed to isolate the training metrics by experiment directory
         """
         metrics_start = time.time()
-
+        track_path=str(self.monitor.testbed_exp+"/"+self.monitor.exp_id+"-training_track.txt")
+        IO_Functions()._write_list(self.training_track, track_path)
         ### Add elements to json experiment Description architecture
         eda_json = self.monitor.read_eda_json(self.monitor.testbed_exp, self.monitor.exp_id)
 
@@ -589,7 +590,7 @@ class MultiGPU:
                 epoch_elapsed = (time.time() - epoch_start)
                 logger.info("Epoch {} | Train loss: {} |  Valid loss: {} | Train Acc: {} | Valid Acc: {} | Epoch_Time: {}".format(epoch,
                                                         train_loss, valid_loss, train_acc, valid_acc, np.round(epoch_elapsed, decimals=4)))
-                
+                self.training_track.append((epoch,train_loss, valid_loss, train_acc, valid_acc, np.round(epoch_elapsed, decimals=4)))
                 epoch = epoch + 1
             self.time_training = time.time()-training_start
 
@@ -648,7 +649,8 @@ class MultiGPU:
         Uses Testbed to isolate the training metrics by experiment directory
         """
         metrics_start = time.time()
-
+        track_path=str(self.monitor.testbed_exp+"/"+self.monitor.exp_id+"-training_track.txt")
+        IO_Functions()._write_list(self.training_track, track_path)
         ### Add elements to json experiment Description architecture
         eda_json = self.monitor.read_eda_json(self.monitor.testbed_exp, self.monitor.exp_id)
 
