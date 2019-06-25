@@ -15,6 +15,11 @@ from monitor import enerGyPU, Metrics
 from sklearn.metrics import f1_score
 import subprocess as sp
 import logging
+
+os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
+os.environ["CUDA_VISIBLE_DEVICES"] = '5'
+
+
 logger = logging.getLogger('_DiagnoseNET_')
 logger.setLevel(logging.DEBUG)
 formatter = logging.Formatter(
