@@ -55,9 +55,9 @@ class Data(object):
 
     def datapreposessing(self):
         self.X_train, self.X_test, self.Y_train, self.Y_test = train_test_split\
-            (self.X, self.Y, test_size=0.2, random_state=random.seed())
+            (self.X, self.Y, test_size=0.2, random_state=random.seed(42))
         self.X_validation, self.X_test, self.Y_validation, self.Y_test = train_test_split(self.X_test, self.Y_test, 
-                                                                        test_size=0.5, random_state=random.seed())
+                                                                        test_size=0.5, random_state=random.seed(22))
 
         s = self.X_train.shape
         self.X_train = np.reshape(self.X_train, (s[0], s[1] * s[2], 1))
