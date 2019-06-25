@@ -1,9 +1,19 @@
 ## inputs and outputs
 input/*
-Keras/output/*
 enerGyPU/testbed/*
 
-
-## Keras objects
+## Keras
 Keras/__pycache__/
 Keras/h-workers
+Keras/model.h5
+Keras/output/*
+
+## tensorflow 
+tensorflow/checkpoint
+tensorflow/model.ckpt.*
+
+## diagnosenet
+diagnosenet/checkpoint
+diagnosenet/model.ckpt.*
+diagnosenet/__pycache__/
+diagnosenet/*.swp
