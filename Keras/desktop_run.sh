@@ -13,7 +13,7 @@
 
 # Global workload parameters
 # For the sample matrixMul the dimensions of A & B matrices must be equal.
-DIM=1024
+DIM=2048
 nGPU=1
 
 # Location of the power consumption measures

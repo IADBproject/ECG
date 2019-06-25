@@ -1,4 +1,4 @@
-from keras.models import Model
+from keras.models import Model,h5py
 from keras.layers import (Dense,Activation,Dropout,Conv1D,MaxPooling1D,
                             BatchNormalization,Flatten,Input,Add)
 from keras.optimizers import Adam
@@ -16,13 +16,17 @@ import getopt
 from sklearn.model_selection import train_test_split
 import random
 from sklearn.metrics import confusion_matrix,f1_score, precision_recall_fscore_support
+
+os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
+os.environ["CUDA_VISIBLE_DEVICES"] ="3"
+
 pd.set_option('display.max_columns', None)
 
 
 xdata= './../input/xdata.npy'
 ylabel='./../input/ydata.npy'
-batch_size =8
-epochs= 30
+batch_size=8
+epochs=30
 lr=0.0001
 
 class Data(object):
@@ -87,6 +91,7 @@ class Modeling(object):
         self.model_json=None
         self.model_weights=None
         self.acc=None
+        self.training_track=[]
     
 
     def load(self, received_model):
@@ -236,10 +241,10 @@ class Modeling(object):
         mv_file.close()
         
         for i in epochs:
-            training_track.append((i,self.history.history[loss_list[0]][i-1],self.history.history[val_loss_list[0]][i-1],self.history.history[acc_list[0]][i-1],self.history.history[val_acc_list[0]][i-1]))
+            self.training_track.append((i,self.history.history[loss_list[0]][i-1],self.history.history[val_loss_list[0]][i-1],self.history.history[acc_list[0]][i-1],self.history.history[val_acc_list[0]][i-1]))
 
         with open('output/keras_train_data.txt', 'w') as f:
-            f.write('\n'.join('%s, %s, %s, %s, %s' % x for x in training_track))
+            f.write('\n'.join('%s, %s, %s, %s, %s' % x for x in self.training_track))
 
 
 
