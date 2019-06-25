@@ -250,10 +250,11 @@ class Modeling(object):
 
 def main():
 
+
     start= time.time()
     data=Data(xdata,ylabel)
     end_data= time.time()
-
+    
     model=Modeling(data,batch_size,epochs)
     model.create_model()
 
@@ -263,11 +264,13 @@ def main():
     model.predict()
     end_evaluate = time.time()
     model.stats()
+    end_matrix=time.time()
 
     print('Time to load data:', end_data-start)
+    print('Time to create graph:', fit-end_data)
     print('Time to fit data:', end-fit)
     print('Time to evaluate:', end_evaluate-end)
-
+    print('Time for matrics:', end_matrix-end_evaluate)
 
 if __name__ == '__main__':
     main()
