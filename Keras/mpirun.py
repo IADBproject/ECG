@@ -15,7 +15,7 @@ def main():
     size = comm.Get_size()
     rank = comm.Get_rank()
     myhost = MPI.Get_processor_name()
-    epochs = 50
+    epochs = 35
     batch_size = 8       
     if rank==0:
         modeling,train_next_batch_gen,val_next_batch_gen,test_next_batch_gen,train_step,val_step,\

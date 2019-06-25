@@ -152,7 +152,7 @@ class MasterModeling(object):
         pool1=MaxPooling1D()(act1)
         x=Add()([conv2,pool1])
         k=1
-        for i in range(1,9,1):
+        for i in range(1,3,1):
             if i%2 ==0:
                 k+=1
             x=Conv1D(64*k,filter_size,padding='same')(x)
@@ -163,8 +163,9 @@ class MasterModeling(object):
         x=Flatten()(x)
         dense=Dense(4,activation='softmax')(x)
         self.model=Model(inputs=ins,outputs=dense)
+        Adamopt=Adam(lr=0.0001)
         #self.model.summary()
-        self.model.compile(optimizer='Adam',loss='categorical_crossentropy',metrics=['accuracy','mae'])
+        self.model.compile(optimizer=Adamopt,loss='categorical_crossentropy',metrics=['accuracy','mae'])
     
     #@profile(precision=4,stream=open('output/memory_profiler.log','w+'))
     def update(self,score,times,epoch):

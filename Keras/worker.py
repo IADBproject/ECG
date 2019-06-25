@@ -5,6 +5,7 @@ import numpy as np
 import os, sys, time
 from keras.callbacks import*
 #from memory_profiler import profile
+from keras.optimizers import Adam
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import f1_score, precision_recall_fscore_support
 import pandas as pd
@@ -47,7 +48,8 @@ class WorkerModeling(object):
 
     def load(self):
         self.model = model_from_json(self.model_json)
-        self.model.compile(loss='categorical_crossentropy', optimizer='Adam', metrics=['accuracy','mae'])
+        Adamopt=Adam(lr=0.0001)
+        self.model.compile(loss='categorical_crossentropy', optimizer=Adamopt, metrics=['accuracy','mae'])
 
     #@profile(precision=4,stream=open('output/memory_profiler.log','w+'))
     def train(self,data,label,end_epoch):
