@@ -243,7 +243,7 @@ class Modeling(object):
         for i in epochs:
             self.training_track.append((i,self.history.history[loss_list[0]][i-1],self.history.history[val_loss_list[0]][i-1],self.history.history[acc_list[0]][i-1],self.history.history[val_acc_list[0]][i-1]))
 
-        with open('output/keras_train_data.txt', 'w') as f:
+        with open('output/keras_training_track.txt', 'w') as f:
             f.write('\n'.join('%s, %s, %s, %s, %s' % x for x in self.training_track))
 
 
