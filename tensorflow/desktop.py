@@ -11,6 +11,9 @@ from sklearn.model_selection import train_test_split
 import random
 from sklearn.metrics import confusion_matrix,f1_score, precision_recall_fscore_support
 
+os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
+os.environ["CUDA_VISIBLE_DEVICES"] ="4"
+
 pd.set_option('display.max_columns', None)
 
 
@@ -79,8 +82,8 @@ class Modeling(object):
         self.val_loss_list=[]
         self.best_validation_loss=9999
         self.reuse=False
-        self.train()
         self.training_track=[]
+        self.train()
 
             
     def r_block(self,in_layer,k,is_training):
@@ -150,16 +153,19 @@ class Modeling(object):
 
             trainmodel = self.conv_net(X, is_training)
            
-            loss_op = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(logits=trainmodel, labels=Y))
+            loss_op = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=trainmodel, labels=Y))
             train_op = tf.train.AdamOptimizer(learning_rate=self.learning_rate).minimize(loss_op)
             accuracy = tf.reduce_mean(tf.cast(tf.equal(tf.argmax(trainmodel, 1), tf.argmax(Y, 1)), tf.float32))
 
 
         n_batches = len(self.dataset.X_train)//self.batch_size
         n_valbatches = math.ceil(len(self.dataset.X_validation)/self.batch_size)
-       
 
-        with tf.Session(graph=graph) as sess:
+
+        config = tf.ConfigProto()
+        config.gpu_options.allow_growth = True       
+
+        with tf.Session(config=config, graph=graph) as sess:
             init = tf.group(tf.global_variables_initializer(),
                         tf.local_variables_initializer())
             sess.run(init)
@@ -224,7 +230,7 @@ class Modeling(object):
             print(self.val_loss_list,file=mv_file)
             mv_file.close()
             with open('output/keras_train_data.txt', 'w') as f:
-            f.write('\n'.join('%s, %s, %s, %s, %s, %s' % x for x in self.training_track))
+            	f.write('\n'.join('%s, %s, %s, %s, %s, %s' % x for x in self.training_track))
 
 
 

@@ -29,7 +29,7 @@ mkdir output
 ./../enerGyPU/dataCapture/enerGyPU_record.sh $Dir $ARGV &
 
 # Add path of the application and libraries necessaries
-python3.6 tensorflow.py
+python3.6 desktop.py
 
 mv output $Dir/$ARGV/
 
