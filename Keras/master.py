@@ -8,15 +8,12 @@ import numpy as np
 import math
 import os, sys, time
 from keras.callbacks import*
-#import matplotlib
-#matplotlib.use("Agg")
-#import matplotlib.pyplot as plt
 import getopt
 from sklearn.model_selection import train_test_split
 import random
 from sklearn.metrics import confusion_matrix,f1_score, precision_recall_fscore_support
 pd.set_option('display.max_columns', None)
-#from memory_profiler import profile
+
 
 class Data(object):
     def __init__(self,xdata,ydata,batch_size,size):
@@ -94,16 +91,14 @@ class MasterModeling(object):
         print("train:",len(self.dataset.X_train),file=self.main_file)
         print("validation:",len(self.dataset.X_validation),file=self.main_file)
         print("test:",len(self.dataset.X_test),file=self.main_file)
+	self.training_track=[]
 
         
-    
-    #@profile(precision=4,stream=open('output/memory_profiler.log','w+'))
     def create(self):
         self.create_model()
         self.model_json = self.model.to_json()
         self.model_weights = self.model.get_weights()
 
-    #@profile(precision=4,stream=open('output/memory_profiler.log','w+'))
     def average_weights(self,all_weights):
         new_weights = []
         #print(all_weights)
@@ -138,7 +133,7 @@ class MasterModeling(object):
         x=Add()([x,pool])
         return x
 
-    def create_model(self):
+    def create_model(self,lr):
         filter_size=16
         ins=Input((1300, 1))
         act1=Conv1D(64,filter_size,padding='same')(ins)
@@ -163,11 +158,10 @@ class MasterModeling(object):
         x=Flatten()(x)
         dense=Dense(4,activation='softmax')(x)
         self.model=Model(inputs=ins,outputs=dense)
-        Adamopt=Adam(lr=0.0001)
+        Adamopt=Adam(lr=lr)
         #self.model.summary()
         self.model.compile(optimizer=Adamopt,loss='categorical_crossentropy',metrics=['accuracy','mae'])
-    
-    #@profile(precision=4,stream=open('output/memory_profiler.log','w+'))
+
     def update(self,score,times,epoch):
         new_score = []
         new_score = [float(sum(col))/len(col) for col in zip(*score)]
@@ -183,11 +177,8 @@ class MasterModeling(object):
 
         msg="Epoch Info:{0},Train Acc:{1:>5.4},Train Loss:{2:>5.4},Val Acc:{3:>5.4},Val Loss:{4:>5.4} --- Time:{5}s"
         print(msg.format(epoch + 1, new_score[3],new_score[2], new_score[1],new_score[0], time.time()-times))
+	self.training_track.append((epoch + 1,new_score[2],new_score[0],new_score[3],new_score[1],epotime))
 
-        print(msg.format(epoch + 1, new_score[3],new_score[2], new_score[1],new_score[0], time.time()-times),file=self.main_file)
-        
-
-    #@profile(precision=4,stream=open('output/memory_profiler.log','w+'))
     def predict(self,pred,label,ltime):
         print("-----Total-----")
         pred=np.vstack(pred)
@@ -252,9 +243,12 @@ class MasterModeling(object):
         print("training time :",self.training_time,file=self.main_file)
         print("testing time :",self.testing_time,file=self.main_file)
         self.main_file.close()
+        with open('output/training_track.txt', 'w') as f:
+            f.write('\n'.join('%s, %s, %s, %s, %s, %s' % x for x in self.training_track))
 
-def mastermain(size,batch_size,data='./../input/xdata.npy',label='./../input/ydata.npy'):
-    #main_file = open('output/main_data.txt','w')
+
+def mastermain(size,batch_size,data='./../input/xdata.npy',label='./../input/ydata.npy',lr,mode):
+
     start=time.time()
     data=Data(data,label,batch_size,size)
 	
@@ -264,11 +258,9 @@ def mastermain(size,batch_size,data='./../input/xdata.npy',label='./../input/yda
     train_step = data.getstep(data.X_train)
     val_step = data.getstep(data.X_validation)
     test_step = data.getstep(data.X_test)
-    #print(len(data.X_train),len(data.X_validation),len(data.X_test))
-    #print('Dataset preparing --- Time:',time.time()-start,file=main_file)
- 
+
     modeling=MasterModeling(data)
-    modeling.create()
+    modeling.create(lr)
     modeling.dataset_time=time.time()-start
     print('Dataset preparing --- Time:',time.time()-start)
     return modeling,train_next_batch_gen,val_next_batch_gen,\
