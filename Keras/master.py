@@ -94,7 +94,7 @@ class MasterModeling(object):
         print("train:",len(self.dataset.X_train),file=self.main_file)
         print("validation:",len(self.dataset.X_validation),file=self.main_file)
         print("test:",len(self.dataset.X_test),file=self.main_file)
-
+        self.training_track=[]
         
     
     #@profile(precision=4,stream=open('output/memory_profiler.log','w+'))
@@ -182,10 +182,11 @@ class MasterModeling(object):
         self.val_acc_list.append(new_score[1])
 
         msg="Epoch Info:{0},Train Acc:{1:>5.4},Train Loss:{2:>5.4},Val Acc:{3:>5.4},Val Loss:{4:>5.4} --- Time:{5}s"
-        print(msg.format(epoch + 1, new_score[3],new_score[2], new_score[1],new_score[0], time.time()-times))
+        epotime=time.time()-times
+        print(msg.format(epoch + 1, new_score[3],new_score[2], new_score[1],new_score[0], epotime))
 
-        print(msg.format(epoch + 1, new_score[3],new_score[2], new_score[1],new_score[0], time.time()-times),file=self.main_file)
-        
+        print(msg.format(epoch + 1, new_score[3],new_score[2], new_score[1],new_score[0], epotime),file=self.main_file)
+        self.training_track.append((epoch + 1,new_score[2],new_score[0],new_score[3],new_score[1],epotime))
 
     #@profile(precision=4,stream=open('output/memory_profiler.log','w+'))
     def predict(self,pred,label,ltime):
@@ -252,6 +253,8 @@ class MasterModeling(object):
         print("training time :",self.training_time,file=self.main_file)
         print("testing time :",self.testing_time,file=self.main_file)
         self.main_file.close()
+        with open('output/training_track.txt', 'w') as f:
+            f.write('\n'.join('%s, %s, %s, %s, %s, %s' % x for x in self.training_track))
 
 def mastermain(size,batch_size,data='./../input/xdata.npy',label='./../input/ydata.npy'):
     #main_file = open('output/main_data.txt','w')

@@ -6,7 +6,7 @@
 
 ## Application workload parameters
 APP="cnn"
-MPI_NPROC=25
+MPI_NPROC=3
 
 ## Location of the power consumption tracks 
 Dir=../enerGyPU/testbed/
