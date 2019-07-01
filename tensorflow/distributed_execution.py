@@ -409,9 +409,8 @@ class CNNClassifier(object):
 if __name__ == '__main__' :
 
     features_name = "ECG"
-    sandbox = "input/"
+    sandbox = "../input/"
 
-    #print(sys.argv[1])
     tf_ps = "134.59.132.111:2222"
     tf_workers = "134.59.132.22:2222,134.59.132.23:2222"
     #tf_workers = "134.59.132.22:2222,134.59.132.23:2222,134.59.132.26:2222,134.59.132.21:2222"
@@ -423,8 +422,6 @@ if __name__ == '__main__' :
     lr_op = 0.0001
     max_epochs=2
     batch_size=8
-    #testbed = str("ECG-test-"+str(num_workers)+"-"+str(time.strftime("%m%d-%H%M", time.localtime())))
-    #sp.Popen(["mkdir", str("./testbed/"+testbed)])
 
 
     y_TRAIN=str("train/ytrain-"+str(task_index+1)+".npy")
@@ -435,12 +432,6 @@ if __name__ == '__main__' :
     x_VALID=str("val/xval-"+str(task_index+1)+".npy")
     x_TEST=str("test/xtest-"+str(task_index+1)+".npy")
 
-    #sp.Popen(["./energy.sh", str("./testbed/"+testbed), str(job_name+"-"+str(task_index))," &"])
-    #sp.Popen(["./ener-bandwidth.sh",str("./testbed/"+testbed), str(job_name+"-"+str(task_index)),tf_ps," &"])
     cnn = CNNClassifier( lr_op, sandbox, testbed, y_TRAIN, y_VALID, y_TEST , x_TRAIN, x_VALID, x_TEST,
                          max_epochs, batch_size,tf_ps, tf_workers, num_ps, num_workers, job_name, task_index)
     cnn.launch_training()
-    #time.sleep(20)
-    #sp.call(["sudo","killall","-9","tegrastats"])
-    #sp.call(["pkill"," -f","'grep'"])
-    #sp.call(["pkill"," -f","'bash -s'"])
