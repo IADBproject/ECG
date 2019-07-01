@@ -53,8 +53,6 @@ mpirun -np $MPI_NPROC --hostfile h-workers python3.6  mpirun.py $Dir $ARGV $Data
 #mpiexec -n 12 --hostfile h-workers python3.6 -m memory_profiler  mpirun.py $Dir $ARGV
 #mpiexec -n 3 python3.6 mpirun.py $Dir $ARGV
 
-## Move memroy profiler to experiment tracks
-mv output $Dir/$ARGV/
 else
 mkdir ../input/train
 mkdir ../input/test
@@ -75,6 +73,8 @@ rm -r  ../input/test
 rm -r  ../input/val
 
 fi
+## Move memroy profiler to experiment tracks
+mv output $Dir/$ARGV/
 echo "--- Finished  ---"
 
 
