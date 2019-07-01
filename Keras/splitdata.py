@@ -39,7 +39,6 @@ def datamain(nsplit):
 
     X_train, X_temp, y_train, y_temp = train_test_split(x,y, train_size=0.8, random_state=random.seed(42))
     X_valid, X_test, y_valid, y_test = train_test_split(X_temp,y_temp, train_size=0.5, random_state=random.seed(22))
-    print("dat---")
     dir_X_train = str(embd_dir+"/train/xtrain-")
     dir_y_train = str(embd_dir+"/train/ytrain-")
     dir_X_valid = str(embd_dir+"/val/xval-")
@@ -51,7 +50,6 @@ def datamain(nsplit):
     _write_file(y_train, dir_y_train, len(y_train), "y_training",nsplit)
     _write_file(X_valid, dir_X_valid, len(X_valid), "X_valid",nsplit)
     _write_file(y_valid, dir_y_valid, len(y_valid), "y_valid",nsplit)
-    print("val---")
     _write_file(X_test, dir_X_test, len(X_test), "X_test",nsplit)
     _write_file(y_test, dir_y_test, len(y_test), "y_test",nsplit)
   

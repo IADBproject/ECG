@@ -86,11 +86,6 @@ class MasterModeling(object):
         self.val_loss_list=[]
         self.val_acc_list=[]
         self.main_file=open('output/main_data.txt','w')
-        #print("ECG MPI  with threads",(self.dataset.size+1),file=self.main_file)
-        #print("batch_size:",self.dataset.batch_size,file=self.main_file)
-        #print("train:",len(self.dataset.X_train),file=self.main_file)
-        #print("validation:",len(self.dataset.X_validation),file=self.main_file)
-        #print("test:",len(self.dataset.X_test),file=self.main_file)
         self.training_track=[]        
 
     def create(self,lr):
@@ -100,12 +95,10 @@ class MasterModeling(object):
 
     def average_weights(self,all_weights):
         new_weights = []
-        #print(all_weights)
-        #print("@@@@@")
         for weights_list_tuple in zip(*all_weights):
             new_weights.append([np.array(weights_).mean(axis=0) for weights_ in zip(*weights_list_tuple)])
         self.model_weights =new_weights
-        #print(new_weights)
+
     
     def r_block(self,in_layer,k,f):
         x=BatchNormalization()(in_layer)
@@ -220,25 +213,11 @@ class MasterModeling(object):
         m_file.close()
         print("-----Total------")
        
-        #print("testing time :",time.time()-ltime,file=main_file)
+
 
 
 
     def savestat(self):
-        #loss_file = open('output/total_loss_data.txt','w')
-        #print("sub training loss",file=loss_file)
-        #for i in range(len(losses_list)):
-            #loss_list_sub = losses_list[i]
-            #print(loss_list_sub,file=loss_file)
-        #print("total training loss \n",self.loss_list,file=loss_file)
-        #print("val loss \n",self.val_loss_list,file=loss_file)
-        #loss_file.close()
-        #losst_file = open('output/train_loss_data.txt','w')
-        #print(self.loss_list,file=losst_file)
-        #losst_file.close()
-        #losstmp_file = open('output/val_loss_data.txt','w')
-        #print(self.val_loss_list,file=losstmp_file)
-        #losstmp_file.close()
         print("preparing time :",self.dataset_time,file=self.main_file)
         print("training time :",self.training_time,file=self.main_file)
         print("testing time :",self.testing_time,file=self.main_file)

@@ -3,12 +3,13 @@ from keras.models import Model,model_from_json
 import tensorflow as tf
 import numpy as np
 import os, sys, time
-from keras.callbacks import*
-#from memory_profiler import profile
+from keras.callbacks import
 from keras.optimizers import Adam
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import f1_score, precision_recall_fscore_support
 import pandas as pd
+
+
 class TrainHistory(keras.callbacks.Callback):
     def __init__(self):
         self.loss = None
@@ -79,7 +80,6 @@ class WorkerModeling(object):
         Adamopt=Adam(lr=lr)
         self.model.compile(loss='categorical_crossentropy', optimizer=Adamopt, metrics=['accuracy','mae'])
 
-    #@profile(precision=4,stream=open('output/memory_profiler.log','w+'))
     def train(self,data,label,end_epoch):
         self.model.fit(x=data,y=label, epochs=1,callbacks=[self.history],verbose = 0)
         self.loss+=self.history.loss
@@ -93,7 +93,6 @@ class WorkerModeling(object):
             self.loss=0
             self.step=0
 
-    #@profile(precision=4,stream=open('output/memory_profiler.log','w+'))
     def validate(self,data,label):
         score=self.model.evaluate(x=data,y=label,verbose = 0)
         self.val_loss=score[0]
@@ -105,10 +104,7 @@ class WorkerModeling(object):
         else:
 
             self.model.set_weights(self.best_model_weights)  
-            #self.trainstats()
 
-
-    #@profile(precision=4,stream=open('output/memory_profiler.log','w+'))
     def test(self,data):
         prediction=self.model.predict(data)
         self.pred.append(prediction)
@@ -116,20 +112,17 @@ class WorkerModeling(object):
 
 
     def trainstats(self,rank,host):
-       
-        #print("---------------")
+
       
         pred=np.vstack(self.pred)
         label=np.vstack(self.label)
-        #print("pred",pred)
-        #print("label",label)
+
+
         pred =  np.argmax(pred, axis = 1)
         label =  np.argmax(label, axis = 1)
         labels, counts = np.unique(label, return_counts = True)
 
-        #print("pred",pred)
-        #print("label",label)
-        #return 0
+
         conf_matrix = confusion_matrix(label, pred, labels)
         true_positive = np.diag(conf_matrix)
         false_negative = []
@@ -155,22 +148,12 @@ class WorkerModeling(object):
         metrics_values = np.transpose(metrics_values)
         metrics_values = pd.DataFrame(metrics_values, columns = ["Labels", "TP", "FN", "FP",
                                     "Precision", "Recall", "F1 Score", "Records by Labels"])
-        #print("work rank",rank,"\n {}".format(metrics_values))
-        #print("---------------")
+
         filename=str('output/worker/host_'+str(host)+'_rank_'+str(rank)+'_F1_score.txt') 
         wfile = open(filename,'w')
-        #filename1=str('output/worker/host_'+str(host)+'_rank_'+str(rank)+'_train_loss.txt')
-        #wtfile = open(filename1,'w')
-        #filename2=str('output/worker/host_'+str(host)+'_rank_'+str(rank)+'_training_track.txt')
-        #wvfile = open(filename2,'w')
 
-        #print(self.loss_list,file=wtfile)
-        #print(self.val_loss_list,file=wvfile)
-        #print("test acc:",pred_acc,file=wfile)
         print(" {}".format(metrics_values),file=wfile)
 
-        #wvfile.close()
-        #wtfile.close()
         wfile.close()
         with open('output/worker/host_'+str(host)+'_rank_'+str(rank)+'_training_track.txt', 'w') as f:
             f.write('\n'.join('%s, %s, %s, %s, %s, %s' % x for x in self.training_track))

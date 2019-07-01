@@ -38,18 +38,13 @@ def localdata(filebed="./../input/",sync=1,lr=0.0001,epochs = 15,batch_size = 8)
     for e in range(epochs):
         sub_time = time.time()
         if rank==0:
-            #sub_time= time.time()
             for i in range(1, size):
                 comm.send(modeling.model_weights, dest=i)
         else:
             modeling.model_weights = comm.recv(source=0)
             modeling.read(True)
 
-        #if rank==(size-1):
-        #    print("pass weights timing",time.time()-sub_time)
-
         ###training
-        print(rank,"- train")
         if rank!=0:
             for s in range(modeling.train_step):
                 data,label=next(modeling.train_next_batch_gen)
@@ -65,7 +60,6 @@ def localdata(filebed="./../input/",sync=1,lr=0.0001,epochs = 15,batch_size = 8)
             update_weights =  modeling.model_weights
             comm.send(update_weights, dest=0)
 
-        print(rank,"- val")
         ####validation
         if rank==0:
             for i in range(1, size):
@@ -82,7 +76,6 @@ def localdata(filebed="./../input/",sync=1,lr=0.0001,epochs = 15,batch_size = 8)
                 val_loss+=modeling.val_loss/modeling.val_step
                 val_acc+=modeling.val_acc/modeling.val_step
 
-        print(rank,"- epoch end")
         if rank==0:
             w=[]
             for i in range(1, size):
@@ -139,10 +132,9 @@ def masterdata(sync=1,lr=0.0001,epochs = 5,batch_size = 8):
     if rank==0:
         modeling,train_next_batch_gen,val_next_batch_gen,test_next_batch_gen,train_step,val_step,\
         test_step=mastermain((size-1),batch_size,lr=lr,mode=1)
-        #print(train_step,val_step,test_step)
+
         print("epochs:",epochs,file=modeling.main_file)
         print("ECG MPI  with threads",(size),file=modeling.main_file)
-    #atime=time.time()
     if rank==0:
         for i in range(1, size):
             comm.send([modeling.model_json,train_step,val_step,test_step], dest=i)
@@ -150,8 +142,6 @@ def masterdata(sync=1,lr=0.0001,epochs = 5,batch_size = 8):
         modeling=WorkerModeling(batch_size)
         modeling.model_json,train_step,val_step,test_step=comm.recv(source=0)
         modeling.load(lr)
-    #if rank==(size-1):
-    #    print("pass model timing",time.time()-atime)
     fit = time.time()
 
     for e in range(epochs):
@@ -164,10 +154,6 @@ def masterdata(sync=1,lr=0.0001,epochs = 5,batch_size = 8):
             modeling.model_weights = comm.recv(source=0)
             modeling.read(True)
 
-        #if rank==(size-1):
-        #    print("pass weights timing",time.time()-sub_time)
-
-        ###training
         for s in range(train_step):
             if rank==0:
                 data,label=next(train_next_batch_gen)
@@ -229,7 +215,6 @@ def masterdata(sync=1,lr=0.0001,epochs = 5,batch_size = 8):
     if rank==0:
         print("training time :",end-fit)
         modeling.training_time=end-fit
-        #print("training time :",end-fit,file=main_file)
         for i in range(1, size):
             comm.send(modeling.best_model_weights, dest=i)
     else:
@@ -263,7 +248,6 @@ def masterdata(sync=1,lr=0.0001,epochs = 5,batch_size = 8):
         modeling.savestat()
     else:
         modeling.trainstats(rank,myhost)
-        #modeling.predictstats(rank)
 
 if __name__ == '__main__':
     mode=sys.argv[3]
