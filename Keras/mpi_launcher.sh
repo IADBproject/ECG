@@ -5,13 +5,13 @@
 #################################################################################
 
 ## Application workload parameters
-APP="cnn"
+APP="MPI-Keras"
 MPI_NPROC=3
-
+DataDis=1
 ## Location of the power consumption tracks 
 Dir=../enerGyPU/testbed/
 DATA=`date +%Y%m%d%H%M`
-ARGV=$APP-$MPI_NPROC-$DATA
+ARGV=$APP-$DataDis-$MPI_NPROC-$DATA
 mkdir $Dir/$ARGV
 mkdir output
 mkdir output/worker
@@ -47,15 +47,34 @@ export PATH=$PATH:/usr/bin/mpicc:/usr/bin/mpirun:/usr/bin/mpiexec
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/openmpi/lib
 
 #sudo nohup iftop -t > $Dir/$ARGV/iflog.txt & 
-
+if [ $DataDis == 0 ]; then
 ## Aplication execution 
-mpirun -np $MPI_NPROC --hostfile h-workers python3.6  mpirun.py $Dir $ARGV
+mpirun -np $MPI_NPROC --hostfile h-workers python3.6  mpirun.py $Dir $ARGV $DataDis
 #mpiexec -n 12 --hostfile h-workers python3.6 -m memory_profiler  mpirun.py $Dir $ARGV
 #mpiexec -n 3 python3.6 mpirun.py $Dir $ARGV
 
 ## Move memroy profiler to experiment tracks
 mv output $Dir/$ARGV/
+else
+mkdir ../input/train
+mkdir ../input/test
+mkdir ../input/val
 
+python3.6 splitdata.py $MPI_NPROC
+
+#sudo nohup iftop -t > $Dir/$ARGV/iflog.txt & 
+#sleep 60s
+## Aplication execution 
+mpirun -np $MPI_NPROC --hostfile h-workers python3.6  mpirun.py $Dir $ARGV $DataDis
+#mpiexec -n 12 --hostfile h-workers python3.6 -m memory_profiler  mpirun.py $Dir $ARGV
+#mpiexec -n 3 python3.6 mpirun.py $Dir $ARGV
+
+## Move memroy profiler to experiment tracks
+rm -r  ../input/train
+rm -r  ../input/test
+rm -r  ../input/val
+
+fi
 echo "--- Finished  ---"
 
 

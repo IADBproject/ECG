@@ -19,13 +19,14 @@ class TrainHistory(keras.callbacks.Callback):
         self.acc = logs.get('acc')
 
 class WorkerModeling(object):
-    def __init__(self):
+    def __init__(self,batch_size):
         self.model = None
         self.model_json=None
         self.model_weights=None
         self.best_model_weights=None
         self.val_loss = None
         self.val_acc = None
+        self.batch_size=batch_size
 
         self.loss = 0
         self.acc = 0
@@ -37,18 +38,45 @@ class WorkerModeling(object):
         self.val_acc_list=[]
         self.label=[]
         self.pred=[]
-
-        self.loss = 0.0
-        self.acc = 0.0
-        self.history = TrainHistory()
-        self.loss_list=[]
-        self.acc_list=[]
-        self.log_list=[]
         self.step=0
+        self.training_track=[]
 
-    def load(self):
+    def data(self,xtrain_name,ytrain_name,xval_name,yval_name,xtest_name,ytest_name):
+        self.x_train=np.load(xtrain_name)
+        self.y_train=np.load(ytrain_name)
+        self.x_valid=np.load(xval_name)
+        self.y_valid=np.load(yval_name)
+        self.x_test=np.load(xtest_name)
+        self.y_test=np.load(ytest_name)
+        self.train_next_batch_gen = self.generator( self.x_train, self.y_train)
+        self.val_next_batch_gen = self.generator( self.x_valid, self.y_valid)
+        self.test_next_batch_gen = self.generator( self.x_test, self.y_test)
+        self.train_step = self.getstep(self.x_train)
+        self.val_step = self.getstep(self.x_valid)
+        self.test_step = self.getstep(self.x_test)
+
+    def getstep(self,X_train):
+        return len(X_train)//(self.batch_size)
+
+    def generator(self,X_train,y_train):
+        while 1:
+            idx = np.arange(0 , len(X_train))
+            np.random.shuffle(idx)
+            for i in range(0, len(X_train), self.batch_size):
+                k = i+self.batch_size
+                if k>len(X_train):
+                    break;
+                batch_idx = idx[i:k]
+                data_shuffle = [X_train[ ii] for ii in batch_idx]
+                labels_shuffle = [y_train[ii] for ii in batch_idx]
+                yield np.asarray(data_shuffle), np.asarray(labels_shuffle)
+
+    def track(self,i,stime):
+        self.training_track.append((i+1,self.loss_list[-1],self.val_loss_list[-1],self.acc_list[-1],self.val_acc_list[-1],time.time()-stime))
+
+    def load(self,lr):
         self.model = model_from_json(self.model_json)
-        Adamopt=Adam(lr=0.0001)
+        Adamopt=Adam(lr=lr)
         self.model.compile(loss='categorical_crossentropy', optimizer=Adamopt, metrics=['accuracy','mae'])
 
     #@profile(precision=4,stream=open('output/memory_profiler.log','w+'))
@@ -129,19 +157,20 @@ class WorkerModeling(object):
                                     "Precision", "Recall", "F1 Score", "Records by Labels"])
         #print("work rank",rank,"\n {}".format(metrics_values))
         #print("---------------")
-        filename=str('output/worker/host_'+str(host)+'_rank_'+str(rank)+'_train.txt') 
+        filename=str('output/worker/host_'+str(host)+'_rank_'+str(rank)+'_F1_score.txt') 
         wfile = open(filename,'w')
-        filename1=str('output/worker/host_'+str(host)+'_rank_'+str(rank)+'_train_loss.txt')
-        wtfile = open(filename1,'w')
-        filename2=str('output/worker/host_'+str(host)+'_rank_'+str(rank)+'_val_loss.txt')
-        wvfile = open(filename2,'w')
+        #filename1=str('output/worker/host_'+str(host)+'_rank_'+str(rank)+'_train_loss.txt')
+        #wtfile = open(filename1,'w')
+        #filename2=str('output/worker/host_'+str(host)+'_rank_'+str(rank)+'_training_track.txt')
+        #wvfile = open(filename2,'w')
 
-        print(self.loss_list,file=wtfile)
-        print(self.val_loss_list,file=wvfile)
-        print("test acc:",pred_acc,file=wfile)
+        #print(self.loss_list,file=wtfile)
+        #print(self.val_loss_list,file=wvfile)
+        #print("test acc:",pred_acc,file=wfile)
         print(" {}".format(metrics_values),file=wfile)
 
-        wvfile.close()
-        wtfile.close()
+        #wvfile.close()
+        #wtfile.close()
         wfile.close()
-
+        with open('output/worker/host_'+str(host)+'_rank_'+str(rank)+'_training_track.txt', 'w') as f:
+            f.write('\n'.join('%s, %s, %s, %s, %s, %s' % x for x in self.training_track))
