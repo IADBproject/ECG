@@ -32,8 +32,8 @@ class Data(object):
         self.Y = pd.get_dummies(self.Y).to_numpy()
 
     def datapreposessing(self):
-        self.X_train, self.X_test, self.Y_train, self.Y_test = train_test_split(self.X, self.Y, test_size=0.2, random_state=random.seed())
-        self.X_validation, self.X_test, self.Y_validation, self.Y_test = train_test_split(self.X_test, self.Y_test, test_size=0.5, random_state=random.seed())
+        self.X_train, self.X_test, self.Y_train, self.Y_test = train_test_split(self.X, self.Y, test_size=0.2, random_state=random.seed(42))
+        self.X_validation, self.X_test, self.Y_validation, self.Y_test = train_test_split(self.X_test, self.Y_test, test_size=0.5, random_state=random.seed(22))
         s = self.X_train.shape
         self.X_train = np.reshape(self.X_train, (s[0], s[1] * s[2], 1))
         s = self.X_validation.shape
@@ -82,7 +82,11 @@ class Modeling(object):
         self.val_loss_list=[]
         self.best_validation_loss=9999
         self.reuse=False
-        self.training_track=[]
+        self.training_track=[] 
+        self.time_training: time()
+        self.time_testing: time()
+        self.time_metrics: time()
+        self.time_latency: time()
         self.train()
 
             
@@ -145,6 +149,7 @@ class Modeling(object):
 
 
     def train(self):
+        latime=time.time()
         tf.reset_default_graph()
         with tf.Graph().as_default() as graph:
             X = tf.placeholder(tf.float32, [None, 1300,1])
@@ -164,14 +169,15 @@ class Modeling(object):
 
         config = tf.ConfigProto()
         config.gpu_options.allow_growth = True       
-
+        self.time_latency=time.time()-latime
+        
         with tf.Session(config=config, graph=graph) as sess:
             init = tf.group(tf.global_variables_initializer(),
                         tf.local_variables_initializer())
             sess.run(init)
             saver = tf.train.Saver()
             
-
+            triantime=time.time()
             for i in range(self.epochs):
                 acc,loss,val_acc,val_loss=0,0,0,0
                 next_batch_gen = self.dataset.next_batch( self.dataset.X_train, self.dataset.Y_train,self.batch_size)
@@ -206,10 +212,12 @@ class Modeling(object):
                 self.training_track.append((i + 1,loss, val_loss, acc, val_acc, np.round(time.time()-estart, decimals=4)))
                 self.loss_list.append(loss)
                 self.val_loss_list.append(val_loss)
-
+                
+            self.time_training=time.time()-triantime
             saver.restore(sess, "./model.ckpt")
             pred=[]
             acc_test,loss_test=0,0
+            testtime=time.time()
             n_tbatches = math.ceil(len(self.dataset.X_test)/self.batch_size)
             for i in  range(n_tbatches):
                     j = min((i+1 ) * self.batch_size, len(self.dataset.Y_test))
@@ -223,15 +231,17 @@ class Modeling(object):
             print('Predict loss:', loss_test)
             print('Predict accuracy:', acc_test)
             self.predict(pred)
+            self.time_testing=time.time()-testtime
+            matime=time.time()
             m_file = open('output/tensorflow_train_loss_data.txt','w')
             print(self.loss_list,file=m_file)
             m_file.close()
             mv_file = open('output/tensorflow_val_loss_data.txt','w')
             print(self.val_loss_list,file=mv_file)
             mv_file.close()
-            with open('output/keras_train_data.txt', 'w') as f:
+            with open('output/tensorflow_training_track.txt', 'w') as f:
             	f.write('\n'.join('%s, %s, %s, %s, %s, %s' % x for x in self.training_track))
-
+            self.time_metrics=time.time()-matime
 
 
     def predict(self,pred):
@@ -272,10 +282,16 @@ class Modeling(object):
         m_file.close()
 
 def main():
-
+    dtime=time.time()
     data=Data(xdata,ylabel)
+    edtime=time.time()
 
     model=Modeling(data,batch_size,epochs,learning_rate)
+    print('Time to load data:', edtime-dtime)
+    print('Time to create graph:', model.time_latency)
+    print('Time to fit data:', model.time_training)
+    print('Time to evaluate:', model.time_testing)
+    print('Time for matrics:', model.time_metrics)
 
 if __name__ == '__main__':
     main()

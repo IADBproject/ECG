@@ -90,8 +90,8 @@ class Splitting(Dataset):
             prop1=self.valid_size+self.test_size
             prop2=(self.test_size*1)/(self.valid_size+self.test_size)
 
-        X_train, X_temp, y_train, y_temp = train_test_split(self.inputs, self.targets, test_size=prop1)
-        X_valid, X_test, y_valid, y_test = train_test_split(X_temp,y_temp, test_size=prop2)
+        X_train, X_temp, y_train, y_temp = train_test_split(self.inputs, self.targets, test_size=prop1,random_state=random.seed(42))
+        X_valid, X_test, y_valid, y_test = train_test_split(X_temp,y_temp, test_size=prop2,random_state=random.seed(22))
 
         ## DataSplit instances
         self.train = DataSplit(name='train', inputs=X_train, targets=y_train)
