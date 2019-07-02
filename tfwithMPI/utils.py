@@ -84,6 +84,14 @@ class MasterModeling(object):
         self.last_improvement=0
 
     def average_gradients(self, tower_grads):
+        new_weights = []
+        for weights_list_tuple in zip(*tower_grads):
+            new_weights.append([np.array(weights_).mean(axis=0) for weights_ in zip(*weights_list_tuple)])
+        self.model_weights=new_weights
+        print(new_weights)
+        return new_weights
+
+    def average_gradients1(self, tower_grads):
         """
         Merge the grads computations done by each GPU tower
         """
@@ -93,11 +101,12 @@ class MasterModeling(object):
         average_grads = []
         for grad_and_vars in zip(*tower_grads):
             ## Second print
-            # print("grad_and_vars: {}".format(grad_and_vars))
+            print("inintial  grad_and_vars:",grad_and_vars)
             grads = []
             for g, _ in grad_and_vars:
                 ## Third Print
                 #print("+ Grad by Tower: {}".format(g))
+                print(g)
                 if g is None:
                     pass
                 else:
@@ -111,15 +120,20 @@ class MasterModeling(object):
             # Average over the 'tower' dimension.
             grad = tf.concat(grads, 0)
             grad = tf.reduce_mean(grad, 0)
-
+            print("grad:" ,grad)
             # Keep in mind that the Variables are redundant because they are shared
             # across towers. So .. we will just return the first tower's pointer to
             # the Variable.
             v = grad_and_vars[0][1]
-            grad_and_var = (grad, v)
+            print("var:" ,v)
+            grad_and_var = [grad, v]
+            print("grad_and_vars:",grad_and_var)
+            print("---------***-----***-------***********__________----------")
+            grad_and_var=np.array(grad_and_var)
             average_grads.append(grad_and_var)
-            self.model_weights=average_grads
-
+           
+        self.model_weights=average_grads
+        print(average_grads)
         return average_grads
 
 

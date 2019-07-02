@@ -52,30 +52,30 @@ class CNNGraph:
         # Define a scope for reusing the variables
         with tf.variable_scope('ConvNet'): 
 
-            act1 = tf.layers.conv1d(x, 64, 16, padding='same',kernel_initializer=tf.glorot_uniform_initializer())
-            x = tf.layers.batch_normalization(act1)
-            x = tf.nn.relu(x)
+            #act1 = tf.layers.conv1d(x, 64, 16, padding='same',kernel_initializer=tf.glorot_uniform_initializer())
+            #x = tf.layers.batch_normalization(act1)
+            #x = tf.nn.relu(x)
 
-            x = tf.layers.conv1d(x, 64, 16, padding='same',kernel_initializer=tf.glorot_uniform_initializer())
-            x = tf.layers.batch_normalization(x)
-            x = tf.nn.relu(x)
+            x = tf.layers.conv1d(x, 2, 4, padding='same',kernel_initializer=tf.glorot_uniform_initializer())
+            #x = tf.layers.batch_normalization(x)
+            #x = tf.nn.relu(x)
 
-            x = tf.layers.dropout(x, rate=0.2, training=is_training)
-            x1 = tf.layers.conv1d(x, 64, 1, strides=2,kernel_initializer=tf.glorot_uniform_initializer())
+            #x = tf.layers.dropout(x, rate=0.2, training=is_training)
+            #x1 = tf.layers.conv1d(x, 64, 1, strides=2,kernel_initializer=tf.glorot_uniform_initializer())
 
-            x2 = tf.layers.max_pooling1d(act1,2,strides=2)
-            x = tf.add(x1,x2)
+            #x2 = tf.layers.max_pooling1d(act1,2,strides=2)
+            #x = tf.add(x1,x2)
 
-            k=1
-            for i in range(1,3,1):
-                if i%2 ==0:
-                    k+=1
-                x=tf.layers.conv1d(x,64*k,16,padding='same',kernel_initializer=tf.glorot_uniform_initializer())
-                x=self.r_block(x,k,is_training)
-                x=self.subsampling_r_block(x,k,is_training)
+            #k=1
+            #for i in range(1,3,1):
+            #    if i%2 ==0:
+            #        k+=1
+            #    x=tf.layers.conv1d(x,64*k,16,padding='same',kernel_initializer=tf.glorot_uniform_initializer())
+            #    x=self.r_block(x,k,is_training)
+            #    x=self.subsampling_r_block(x,k,is_training)
 
-            x = tf.layers.batch_normalization(x)
-            x = tf.nn.relu(x)
+            #x = tf.layers.batch_normalization(x)
+            #x = tf.nn.relu(x)
             x = tf.contrib.layers.flatten(x)
             out = tf.layers.dense(x, 4,kernel_initializer=tf.glorot_uniform_initializer())
         return out
