@@ -161,6 +161,7 @@ class MasterModeling(object):
         if new_score[0] <self.loss:
             self.loss = new_score[0]
             self.best_model_weights = self.model_weights
+            self.best_epoch=epoch+1
 
         self.loss_list.append(new_score[2])
         self.acc_list.append(new_score[3])
@@ -221,6 +222,7 @@ class MasterModeling(object):
         print("preparing time :",self.dataset_time,file=self.main_file)
         print("training time :",self.training_time,file=self.main_file)
         print("testing time :",self.testing_time,file=self.main_file)
+        print("minimum appears at:",self.best_epoch,file=self.main_file)
         self.main_file.close()
         with open('output/training_track.txt', 'w') as f:
             f.write('\n'.join('%s, %s, %s, %s, %s, %s' % x for x in self.training_track))

@@ -37,14 +37,14 @@ class CNNClassifier(object):
         self.num_workers = int(args[14])
         self.job_name = args[15]
         self.task_index = int(args[16])
-
+        self.testbed_dir = args[17]
         
         #######################################################################
         ## Local variables
         self.Y_train = np.load(str(self.sandbox_fn +self.y_TRAIN))
         self.Y_validation = np.load(str(self.sandbox_fn +self.y_VALID))
         self.Y_test = np.load(str(self.sandbox_fn +self.y_TEST))
-        self.testbed_dir = str("./testbed/")
+        #self.testbed_dir = str("./testbed/")
         self.X_train =  np.load(str(self.sandbox_fn+ self.x_TRAIN))
         self.X_validation =  np.load(str(self.sandbox_fn +self.x_VALID))
         self.X_test =  np.load(str(self.sandbox_fn+self.x_TEST))
@@ -245,14 +245,17 @@ class CNNClassifier(object):
 
                 #########################################################
                 ## Create a distributed session whit training supervisor
+                saver = tf.train.Saver()
                 sv = tf.train.Supervisor(is_chief=(self.task_index == 0),
-                                            graph=cnn_graph,
+                                            graph=cnn_graph,saver=saver,
+                                            checkpoint_basename=str(self.testbed_dir+"/"+self.argv_testbed+"/"+"model-"+self.job_name+"-"+str(self.task_index)+".ckpt"),
                                             global_step=global_step,
                                             init_op=init_op)
                 start_time = time.time()
+                best_val_loss=9999
                 #config = tf.ConfigProto(allow_soft_placement=True)
                 #config.gpu_options.allow_growth = True
-
+                #saver = tf.train.Saver()
                 with sv.managed_session(self.server.target) as sess:
                     epoch = 0
                     listtrain_losses = []
@@ -260,7 +263,8 @@ class CNNClassifier(object):
                     listvalid_losses = []
                     listvalid_auc = []
                     time_per_epoch = []
-
+                    last_improvement=0
+                    
                     end_time = (time.time()-start_time_loaddata)
                     print("Loading data took: %s secondes " % end_time)
 
@@ -277,10 +281,11 @@ class CNNClassifier(object):
 
                         for i in range(train_step):
                             x_training, y_training = next(train_next_batch_gen)
-                            _, tloss , tacc = sess.run([grads, loss,accuracy], feed_dict ={x: x_training, y: y_training, is_training :True})
+                            gradients, tloss , tacc = sess.run([grads, loss,accuracy], feed_dict ={x: x_training, y: y_training, is_training :True})
                             train_loss += tloss/train_step
                             train_auc +=tacc/train_step
                         listtrain_losses.append(train_loss)
+                        listtrain_auc.append(train_auc)
 
                         ############ Validation ########
                         valid_loss = 0.0
@@ -299,22 +304,30 @@ class CNNClassifier(object):
                         end_time_epoch = (time.time()-start_time_epoch)
                         time_per_epoch.append(end_time_epoch)
                         listvalid_losses.append(valid_loss)
+                        listvalid_auc.append(valid_auc)
 
+                        if valid_loss < best_val_loss:
+                          # Update the best-known validation accuracy.
+                           best_val_loss = valid_loss
+                           saver.save(sess, str(self.testbed_dir+"/"+self.argv_testbed+"/"+"model-"+self.job_name+"-"+str(self.task_index)+".ckpt"))
+                          # Set the iteration for the last improvement to current.
+                           last_improvement = epoch
+                           
                         epoch = epoch + 1
                         print('training loss: {} --  training acc: {}  validation loss: {} --  validation acc: {}  time :{}'.format(train_loss,train_auc, valid_loss,valid_auc,end_time_epoch))
 
-                    track_training = np.vstack((np.arange(1,len(listtrain_losses)+1), listtrain_losses, listvalid_losses, time_per_epoch))
+                    track_training = np.vstack((np.arange(1,len(listtrain_losses)+1), listtrain_losses, listvalid_losses,listtrain_auc,listvalid_auc, time_per_epoch))
                     track_training = np.transpose(track_training)
-                    df_track = pd.DataFrame(track_training, columns = ["epoch", "training loss", "validation loss" , "execution time per epoch"])
+                    df_track = pd.DataFrame(track_training, columns = ["epoch", "training loss", "validation loss" , "training acc", "validation acc" ,  "execution time per epoch"])
 
                     df_track.to_csv(str(self.testbed_dir+"/"+self.argv_testbed+"/"
                                     +self.argv_testbed+"-"+self.job_name+"-"+str(self.task_index)
                                     +"-training_track.csv"), index = False)
 
-                    end_time = (time.time()-start_time)
-                    print("Execution time : %s secondes " % end_time)
+                    tri_end_time = (time.time()-start_time)
+                    print("Execution time : %s secondes " % tri_end_time)
 #                    print("End training with {} training records and {} vaidation records ".format(x_trainsamples, x_validsamples))
-
+                    saver.restore(sess, str(self.testbed_dir+"/"+self.argv_testbed+"/"+"model-"+self.job_name+"-"+str(self.task_index)+".ckpt"))
 
                     print("++ Testing started......")
                     representation = str(x_training.shape[1])
@@ -377,14 +390,17 @@ class CNNClassifier(object):
                     opt = "Optimizer: Adam and learning rate {}".format(lr)
                     weight_f1 = "Weighted average of F1 score : {}".format(f1_weighted)
                     micro_f1 = "Micro average of F1 score : {}".format(f1_micro)
-                    end = "Execution time : {} secondes".format(end_time)
+                    end1 = "preparing time : {} secondes".format(end_time)
+                    end2 = "Execution time : {} secondes".format(tri_end_time)
+                    end3 = "test time : {} secondes".format(time.time()-tri_end_time)
+                    updation = "minimum val loss epoch: {} ".format(last_improvement)
                     sandbx = "\nSandbox used: {}".format(self.sandbox_fn)
 
                     print(weight_f1)
                     print(micro_f1)
-                    print(end)
+                    print(end3)
 
-                    infos = np.array([opt, weight_f1 , micro_f1 , end, sandbx])
+                    infos = np.array([opt, weight_f1 , micro_f1 , end1,end2,end3,updation, sandbx])
 
                     df.to_csv(str(self.testbed_dir+"/"+self.argv_testbed+"/"
                                     +self.argv_testbed+"-"+self.job_name+"-"+str(self.task_index)
@@ -418,9 +434,10 @@ if __name__ == '__main__' :
     num_workers = 2
     job_name = sys.argv[1]
     task_index = int(sys.argv[2])
-    testbed=sys.argv[4]
+    testbed_arg=sys.argv[4]
+    testbed_dir=sys.argv[3]
     lr_op = 0.0001
-    max_epochs=2
+    max_epochs=15
     batch_size=8
 
 
@@ -432,6 +449,6 @@ if __name__ == '__main__' :
     x_VALID=str("val/xval-"+str(task_index+1)+".npy")
     x_TEST=str("test/xtest-"+str(task_index+1)+".npy")
 
-    cnn = CNNClassifier( lr_op, sandbox, testbed, y_TRAIN, y_VALID, y_TEST , x_TRAIN, x_VALID, x_TEST,
-                         max_epochs, batch_size,tf_ps, tf_workers, num_ps, num_workers, job_name, task_index)
+    cnn = CNNClassifier( lr_op, sandbox, testbed_arg, y_TRAIN, y_VALID, y_TEST , x_TRAIN, x_VALID, x_TEST,
+                         max_epochs, batch_size,tf_ps, tf_workers, num_ps, num_workers, job_name, task_index,testbed_dir)
     cnn.launch_training()

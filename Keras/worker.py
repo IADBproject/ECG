@@ -3,7 +3,7 @@ from keras.models import Model,model_from_json
 import tensorflow as tf
 import numpy as np
 import os, sys, time
-from keras.callbacks import
+from keras.callbacks import *
 from keras.optimizers import Adam
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import f1_score, precision_recall_fscore_support

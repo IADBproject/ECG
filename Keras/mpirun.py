@@ -124,7 +124,7 @@ def localdata(filebed="./../input/",sync=1,lr=0.0001,epochs = 15,batch_size = 8)
         modeling.trainstats(rank,myhost)
 
 
-def masterdata(sync=1,lr=0.0001,epochs = 5,batch_size = 8):
+def masterdata(sync=1,lr=0.0001,epochs = 15,batch_size = 8):
     comm = MPI.COMM_WORLD
     size = comm.Get_size()
     rank = comm.Get_rank()
@@ -208,7 +208,7 @@ def masterdata(sync=1,lr=0.0001,epochs = 5,batch_size = 8):
             comm.send([val_loss,val_acc,modeling.loss_list[-1],modeling.acc_list[-1]], dest=0)
             modeling.val_loss_list.append(val_loss)
             modeling.val_acc_list.append(val_acc)
-            modeling.track(e)
+            modeling.track(e,sub_time)
     end = time.time()
 
     ####testing
@@ -251,7 +251,7 @@ def masterdata(sync=1,lr=0.0001,epochs = 5,batch_size = 8):
 
 if __name__ == '__main__':
     mode=sys.argv[3]
-    if mode == 0:
+    if mode == "0":
         masterdata()
     else:
         localdata()
