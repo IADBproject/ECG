@@ -194,8 +194,8 @@ class MasterModeling(object):
 
 
 
-class WorkerModeling(object,model):
-    def __init__(self,batch_size):
+class WorkerModeling(object):
+    def __init__(self,model,batch_size):
         self.model = model
         self.model_weights=None
         self.best_model_weights=None

@@ -90,7 +90,7 @@ class CNNGraph:
 
             #for the training part
             self.projection = self.stacked(self.X,  self.is_training)
-            self.cnn_loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=self.projection, label=self.Y))
+            self.cnn_loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=self.projection, labels=self.Y))
             self.adam_op = tf.train.AdamOptimizer(learning_rate=self.learning_rate)
             self.cnn_grad_op = self.adam_op.compute_gradients(self.cnn_loss)
 

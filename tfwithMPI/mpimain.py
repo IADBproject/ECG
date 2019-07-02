@@ -1,4 +1,4 @@
-from CNNGraph import *
+from CNNgraph import *
 from utils import *
 from mpi4py import MPI
 import time, math
@@ -30,7 +30,6 @@ def mastermain(size,batch_size,lr,mode,data='./../input/xdata.npy',label='./../i
     else:
         data=None
         modeling=MasterModeling(data)
-        modeling.create(lr)
         modeling.create_time=start
         modeling.dataset_time=time.time()-start
         return modeling
@@ -56,9 +55,8 @@ def localdata(filebed="./../input/",sync=1,lr=0.0001,epochs = 15,batch_size = 8)
         yval_name=filebed+"val/yval-"+str(rank)+".npy"
         ytest_name=filebed+"test/ytest-"+str(rank)+".npy"
         model = CNNGraph(input_size_1=1300,input_size_2=1, output_size=4,
-                        loss=CrossEntropy,
-                        optimizer=Adam(lr=lr))
-        modeling=WorkerModeling(model,batch_size,batch_size,lr)
+                        learning_rate=lr)
+        modeling=WorkerModeling(model,batch_size)
         modeling.model.graph()
         modeling.data(xtrain_name,ytrain_name,xval_name,yval_name,xtest_name,ytest_name)
     config = tf.ConfigProto()
@@ -174,8 +172,7 @@ def masterdata(sync=1,lr=0.0001,epochs = 15,batch_size = 8):
             comm.send([train_step,val_step,test_step], dest=i)
     else:
         model = CNNGraph(input_size_1=1300,input_size_2=1, output_size=4,
-                        loss=CrossEntropy,
-                        optimizer=Adam(lr=lr))
+                        learning_rate=lr)
         modeling=WorkerModeling(model,batch_size)
         modeling.model.graph()
         train_step,val_step,test_step=comm.recv(source=0)
@@ -287,6 +284,6 @@ def masterdata(sync=1,lr=0.0001,epochs = 15,batch_size = 8):
 if __name__ == '__main__':
     mode=sys.argv[3]
     if mode == 0:
-        masterdata()
+        masterdata(epochs=2)
     else:
-        localdata()
+        localdata(epochs=2)
