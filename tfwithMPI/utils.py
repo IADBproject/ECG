@@ -205,12 +205,6 @@ class WorkerModeling(object):
                 labels_shuffle = [y_train[ii] for ii in batch_idx]
                 yield np.asarray(data_shuffle), np.asarray(labels_shuffle)
 
-    def read(self,isTrain):
-        if isTrain:
-            self.model.adam_op.apply_gradients(self.model_weights) 
-        else:
-            self.model.adam_op.apply_gradients(self.best_model_weights)  
-
 
     def trainstats(self,rank,host):
 
