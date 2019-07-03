@@ -75,7 +75,7 @@ def localdata(filebed="./../input/",sync=1,lr=0.0001,epochs = 15,batch_size = 8)
                 if rank!=0:
                     for s in range(modeling.train_step):
                         data,label=next(modeling.train_next_batch_gen)
-                        grads,losst,acct=sess.run([modeling.model.cnn_grad_op,modeling.model.cnn_loss,modeling.model.accuracy], 
+                        grads,losst,acct=sess.run([modeling.model._grad_op,modeling.model.cnn_loss,modeling.model.accuracy], 
                                     feed_dict={modeling.model.X: data, modeling.model.Y: label, modeling.model.is_training: True})
                         acc+=acct/modeling.train_step
                         loss+=losst/modeling.train_step
@@ -300,6 +300,6 @@ def masterdata(sync=1,lr=0.0001,epochs = 15,batch_size = 8):
 if __name__ == '__main__':
     mode=sys.argv[3]
     if mode ==  "0":
-        masterdata(epochs=20)
+        masterdata()
     else:
-        localdata(epochs=2)
+        localdata()

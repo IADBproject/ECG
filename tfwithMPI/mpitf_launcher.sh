@@ -7,7 +7,7 @@
 ## Application workload parameters
 APP="MPI-TF"
 MPI_NPROC=3
-DataDis=0
+DataDis=1
 ## Location of the power consumption tracks 
 Dir=../enerGyPU/testbed/
 DATA=`date +%Y%m%d%H%M`
