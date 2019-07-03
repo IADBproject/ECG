@@ -246,7 +246,7 @@ def masterdata(sync=1,lr=0.0001,epochs = 15,batch_size = 8):
                     w=[]
                     for i in range(1, size):
                         w.append(comm.recv(source=i))
-                    modeling.update(w,sub_time,e)
+                    modeling.update(w,sub_time,e,fit)
                     for i in range(1, size):
                         (comm.send(modeling.update_flag,dest=i))
                 else:
