@@ -83,7 +83,7 @@ class MasterModeling(object):
         self.training_track=[] 
         self.last_improvement=0
 
-    def update(self,score,times,epoch):
+    def update(self,score,times,epoch,fit):
         new_score = []
         new_score = [float(sum(col))/len(col) for col in zip(*score)]
         self.update_flag=False
@@ -92,6 +92,7 @@ class MasterModeling(object):
             self.best_model_weights = self.model_weights
             self.update_flag=True
             self.last_improvement=epoch+1
+            self.time_improvement=time.time()-fit
 
         self.loss_list.append(new_score[2])
         self.acc_list.append(new_score[3])
@@ -150,6 +151,7 @@ class MasterModeling(object):
         print("training time :",self.training_time,file=self.main_file)
         print("testing time :",self.testing_time,file=self.main_file)
         print("minimum appears at:",self.last_improvement,file=self.main_file)
+        print("converage time :",self.time_improvement,file=self.main_file)
         print("test acc:",self.pred_acc,file=self.main_file) 
         self.main_file.close()
         with open('output/training_track.txt', 'w') as f:
