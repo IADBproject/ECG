@@ -208,7 +208,7 @@ def masterdata(sync=1,lr=0.0001,epochs = 15,batch_size = 8):
             comm.send([val_loss,val_acc,modeling.loss_list[-1],modeling.acc_list[-1]], dest=0)
             modeling.val_loss_list.append(val_loss)
             modeling.val_acc_list.append(val_acc)
-            modeling.track(e,sub_time,fit)
+            modeling.track(e,sub_time)
     end = time.time()
 
     ####testing
