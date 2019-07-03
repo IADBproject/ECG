@@ -179,7 +179,6 @@ def masterdata(sync=1,lr=0.0001,epochs = 15,batch_size = 8):
             comm.send([train_step,val_step,test_step], dest=i)
     else:
         modeling=WorkerModeling(model,batch_size)
-        modeling.model.graph()
         train_step,val_step,test_step=comm.recv(source=0)
     modeling.model=model
     modeling.model.graph()
@@ -301,6 +300,6 @@ def masterdata(sync=1,lr=0.0001,epochs = 15,batch_size = 8):
 if __name__ == '__main__':
     mode=sys.argv[3]
     if mode ==  "0":
-        masterdata(epochs=50)
+        masterdata(epochs=20)
     else:
         localdata(epochs=2)
