@@ -80,12 +80,12 @@ def localdata(filebed="./../input/",sync=1,lr=0.0001,epochs = 15,batch_size = 8)
             w=[]
             for i in range(1, size):
                 w.append(comm.recv(source=i))
-            modeling.update(w,sub_time,e)
+            modeling.update(w,sub_time,e,fit)
         else:
             comm.send([val_loss,val_acc,modeling.loss_list[-1],modeling.acc_list[-1]], dest=0)
             modeling.val_loss_list.append(val_loss)
             modeling.val_acc_list.append(val_acc)
-            modeling.track(e,sub_time)
+            modeling.track(e,sub_time,fit)
     end = time.time()
 
     ####testing
@@ -203,12 +203,12 @@ def masterdata(sync=1,lr=0.0001,epochs = 15,batch_size = 8):
             w=[]
             for i in range(1, size):
                 w.append(comm.recv(source=i))
-            modeling.update(w,sub_time,e)
+            modeling.update(w,sub_time,e,fit)
         else:
             comm.send([val_loss,val_acc,modeling.loss_list[-1],modeling.acc_list[-1]], dest=0)
             modeling.val_loss_list.append(val_loss)
             modeling.val_acc_list.append(val_acc)
-            modeling.track(e,sub_time)
+            modeling.track(e,sub_time,fit)
     end = time.time()
 
     ####testing
