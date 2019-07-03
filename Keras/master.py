@@ -188,8 +188,8 @@ class MasterModeling(object):
         for i in range(len(conf_matrix)):
             false_positive.append(int(sum(conf_matrix[:,i]) - conf_matrix[i,i]))
             false_negative.append(int(sum(conf_matrix[i,:]) - conf_matrix[i,i]))
-        pred_acc = f1_score(y_true=label, y_pred=pred, average='micro')
-        print("test acc:",pred_acc)        
+        self.pred_acc = f1_score(y_true=label, y_pred=pred, average='micro')
+        print("test acc:",self.pred_acc)        
         precision, recall, F1_score, support = precision_recall_fscore_support(label,pred, average = None)
 
         for i in range(len(labels)):
@@ -223,6 +223,7 @@ class MasterModeling(object):
         print("training time :",self.training_time,file=self.main_file)
         print("testing time :",self.testing_time,file=self.main_file)
         print("minimum appears at:",self.best_epoch,file=self.main_file)
+	print("test acc:",self.pred_acc,file=self.main_file) 
         self.main_file.close()
         with open('output/training_track.txt', 'w') as f:
             f.write('\n'.join('%s, %s, %s, %s, %s, %s' % x for x in self.training_track))
