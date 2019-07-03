@@ -104,7 +104,7 @@ def localdata(filebed="./../input/",sync=1,lr=0.0001,epochs = 15,batch_size = 8)
                     for s in range(modeling.val_step):
                         data,label=next(modeling.val_next_batch_gen)
                         losst,acct=sess.run([modeling.model.cnn_loss,modeling.model.accuracy], 
-                                    feed_dict={modeling.model.X: data, modeling.model.Y: label, modeling.model.is_training: True})
+                                    feed_dict={modeling.model.X: data, modeling.model.Y: label, modeling.model.is_training: False})
                         val_acc+=acct/modeling.val_step
                         val_loss+=losst/modeling.val_step
                         
@@ -239,7 +239,7 @@ def masterdata(sync=1,lr=0.0001,epochs = 15,batch_size = 8):
                     else:
                         data,label=comm.recv(source=0)
                         losst,acct=sess.run([modeling.model.cnn_loss,modeling.model.accuracy], 
-                                        feed_dict={modeling.model.X: data, modeling.model.Y: label, modeling.model.is_training: True})
+                                        feed_dict={modeling.model.X: data, modeling.model.Y: label, modeling.model.is_training: False})
                         val_acc+=acct/val_step
                         val_loss+=losst/val_step
 
