@@ -312,6 +312,7 @@ class CNNClassifier(object):
                            saver.save(sess, str(self.testbed_dir+"/"+self.argv_testbed+"/"+"model-"+self.job_name+"-"+str(self.task_index)+".ckpt"))
                           # Set the iteration for the last improvement to current.
                            last_improvement = epoch
+                           converage_time=time.time()-end_time
                            
                         epoch = epoch + 1
                         print('training loss: {} --  training acc: {}  validation loss: {} --  validation acc: {}  time :{}'.format(train_loss,train_auc, valid_loss,valid_auc,end_time_epoch))
@@ -394,13 +395,15 @@ class CNNClassifier(object):
                     end2 = "Execution time : {} secondes".format(tri_end_time)
                     end3 = "test time : {} secondes".format(time.time()-tri_end_time)
                     updation = "minimum val loss epoch: {} ".format(last_improvement)
+                    conv_time = "converage_time: {} ".format(converage_time)
+
                     sandbx = "\nSandbox used: {}".format(self.sandbox_fn)
 
                     print(weight_f1)
                     print(micro_f1)
                     print(end3)
 
-                    infos = np.array([opt, weight_f1 , micro_f1 , end1,end2,end3,updation, sandbx])
+                    infos = np.array([opt, weight_f1 , micro_f1 , end1,end2,end3,updation, conv_time,sandbx])
 
                     df.to_csv(str(self.testbed_dir+"/"+self.argv_testbed+"/"
                                     +self.argv_testbed+"-"+self.job_name+"-"+str(self.task_index)
