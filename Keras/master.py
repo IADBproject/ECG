@@ -154,7 +154,7 @@ class MasterModeling(object):
         #self.model.summary()
         self.model.compile(optimizer=Adamopt,loss='categorical_crossentropy',metrics=['accuracy','mae'])
 
-    def update(self,score,times,epoch):
+    def update(self,score,times,epoch,fit):
         new_score = []
         new_score = [float(sum(col))/len(col) for col in zip(*score)]
 
@@ -162,6 +162,7 @@ class MasterModeling(object):
             self.loss = new_score[0]
             self.best_model_weights = self.model_weights
             self.best_epoch=epoch+1
+	    self.best_time=time.time()-fit
 
         self.loss_list.append(new_score[2])
         self.acc_list.append(new_score[3])
@@ -223,6 +224,7 @@ class MasterModeling(object):
         print("training time :",self.training_time,file=self.main_file)
         print("testing time :",self.testing_time,file=self.main_file)
         print("minimum appears at:",self.best_epoch,file=self.main_file)
+	print("converage time:",self.best_time,file=self.main_file)
 	print("test acc:",self.pred_acc,file=self.main_file) 
         self.main_file.close()
         with open('output/training_track.txt', 'w') as f:
