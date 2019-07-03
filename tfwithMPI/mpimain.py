@@ -185,7 +185,7 @@ def masterdata(sync=1,lr=0.0001,epochs = 15,batch_size = 8):
     modeling.model.graph()
     config = tf.ConfigProto()
     config.gpu_options.allow_growth = True
-    print("---strat")
+  #  print("---strat")
     fit = time.time()
     with tf.Session(config=config, graph=modeling.model.cnn_graph) as sess:
             init = tf.group(tf.global_variables_initializer(),
@@ -195,7 +195,7 @@ def masterdata(sync=1,lr=0.0001,epochs = 15,batch_size = 8):
             for e in range(epochs):
                 sub_time = time.time()
                 acc,loss,val_acc,val_loss=0,0,0,0
-                print("train")
+ #               print("train")
                 for s in range(train_step):
                     if rank==0:
                         data,label=next(train_next_batch_gen)
@@ -205,7 +205,7 @@ def masterdata(sync=1,lr=0.0001,epochs = 15,batch_size = 8):
                     else:
 
                         data,label=comm.recv(source=0)
-                        grads,losst,acct=sess.run([modeling.model.cnn_grad_op,modeling.model.cnn_loss,modeling.model.accuracy], 
+                        grads,losst,acct=sess.run([modeling.model._grad_op,modeling.model.cnn_loss,modeling.model.accuracy], 
                                             feed_dict={modeling.model.X: data, modeling.model.Y: label, modeling.model.is_training: True})
                         acc+=acct/train_step
                         loss+=losst/train_step
@@ -217,30 +217,44 @@ def masterdata(sync=1,lr=0.0001,epochs = 15,batch_size = 8):
                     #modeling.average_gradients(w)
                 else:
                     update_weights =  grads
-                    print(grads)
-                    print("-------e:",rank,"------")
+                    #print(grads)
+                    #print("-------e:",rank,"------")
                     comm.send(update_weights, dest=0)
 
 
                 ####validation
                 if rank==0:
-                    grad=modeling.average_gradients(w)
+                    #grad=modeling.average_gradients(w)
                     #print(grad)
                     for i in range(1, size):
-                        comm.send(grad, dest=i)
+                        comm.send(w, dest=i)
                 else:
-                    tmplist=[]
+                    #tmplist=[]
                     _weights = comm.recv(source=0)
-                    for c in range(len(_weights)):
-                        tmplist.append(np.array([tf.convert_to_tensor(_weights[c][0], np.float32),_weights[c][1]]))
-                    modeling.model_weights =tmplist
-                    print(modeling.model_weights)
+                    #for c in range(len(_weights)):
+                    #    tmplist.append(np.array([tf.convert_to_tensor(_weights[c][0], np.float32),_weights[c][1]]))
+                    #gra=modeling.average_gradients(_weights)
+                    #modeling.model_weights =tmplist
+                    #print(modeling.model_weights)
                     #modeling.model_weights = comm.recv(source=0)
-                    modeling.read(True)
-                print("val--")
+                    feed_dict = {}
+                    #for i in range(len(modeling.model.grad_placeholder)):
+                    #     feed_dict[modeling.model.grad_placeholder[i][0]] = modeling.model_weights[i]
+                    #sess.run(modeling.model.apply_op, feed_dict=feed_dict)
+                    modeling.model._gradients=_weights
+                    for i, placeholder in enumerate(modeling.model._grad_placeholders):
+                        feed_dict[placeholder] = np.stack([g[i] for g in modeling.model._gradients], axis=0).mean(axis=0)
+                    modeling.update_weight=feed_dict
+                    sess.run(modeling.model._train_op, feed_dict=feed_dict)
+                    #modeling.read(True)
+                    #modeling.model.adam_op.apply_gradients(grads)
+                    #if rank==1:
+                        #comm.send(modeling.model._gradients, dest=0)
+#                print("val--")
                 val_loss,val_acc=0,0
                 for s in range(val_step):
                     if rank==0:
+                        #modeling.model_weights=comm.recv(source=1)
                         data,label=next(val_next_batch_gen)
                         for i in range(1,size):
                             k=i*batch_size
@@ -257,9 +271,14 @@ def masterdata(sync=1,lr=0.0001,epochs = 15,batch_size = 8):
                     for i in range(1, size):
                         w.append(comm.recv(source=i))
                     modeling.update(w,sub_time,e)
+                    for i in range(1, size):
+                        (comm.send(modeling.update_flag,dest=i))
                 else:
                     comm.send([val_loss,val_acc,loss,acc], dest=0)
-                    modeling.training_track.append((e + 1,loss, val_loss, acc, val_acc, np.round(sub_time, decimals=4))) 
+                    modeling.training_track.append((e + 1,loss, val_loss, acc, val_acc, np.round(time.time()-sub_time, decimals=4))) 
+                    update_flag = comm.recv(source=0)
+                    if update_flag==True:
+                        modeling.best_model_weights =modeling.update_weight
                     if val_loss < modeling.best_validation_loss:
                         modeling.best_validation_loss = val_loss
                         modeling.last_improvement = e+1 
@@ -269,11 +288,11 @@ def masterdata(sync=1,lr=0.0001,epochs = 15,batch_size = 8):
             if rank==0:
                 print("training time :",end-fit)
                 modeling.training_time=end-fit
-                for i in range(1, size):
-                    comm.send(modeling.best_model_weights, dest=i)
+                #for i in range(1, size):
+                    #comm.send(modeling.best_model_weights, dest=i)
             else:
-                modeling.best_model_weights = comm.recv(source=0)
-                modeling.read(False)
+                #modeling.best_model_weights = comm.recv(source=0)
+                sess.run(modeling.model._train_op, feed_dict=modeling.best_model_weights)
 
             p,t=[],[]
             for s in range(test_step):
@@ -308,6 +327,6 @@ def masterdata(sync=1,lr=0.0001,epochs = 15,batch_size = 8):
 if __name__ == '__main__':
     mode=sys.argv[3]
     if mode ==  "0":
-        masterdata(epochs=2)
+        masterdata(epochs=50)
     else:
         localdata(epochs=2)
