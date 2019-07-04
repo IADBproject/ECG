@@ -59,11 +59,11 @@ def localdata(filebed="./../input/",sync=1,lr=0.0001,epochs = 15,batch_size = 8,
         
         modeling.data(xtrain_name,ytrain_name,xval_name,yval_name,xtest_name,ytest_name)
     modeling.model=model
-    modeling.model.graph()
+    modeling.model.Graph()
     config = tf.ConfigProto()
     config.gpu_options.allow_growth = True
     fit = time.time()
-    with tf.Session(config=config, graph=modeling.model.cnn_graph) as sess:
+    with tf.Session(config=config, graph=modeling.model.graph) as sess:
             init = tf.group(tf.global_variables_initializer(),
                         tf.local_variables_initializer())
             sess.run(init)
@@ -76,10 +76,10 @@ def localdata(filebed="./../input/",sync=1,lr=0.0001,epochs = 15,batch_size = 8,
                     for s in range(modeling.train_step):
                         data,label=next(modeling.train_next_batch_gen)
                         if s==(modeling.train_step-1):
-                            grads,losst,acct=sess.run([modeling.model._grad_op,modeling.model.cnn_loss,modeling.model.accuracy], 
+                            grads,losst,acct=sess.run([modeling.model._grad_op,modeling.model.loss,modeling.model.accuracy], 
                                     feed_dict={modeling.model.X: data, modeling.model.Y: label, modeling.model.keep_prob: 0.2})
                         else:
-                            _,losst,acct=sess.run([modeling.model.sub_grad_op,modeling.model.cnn_loss,modeling.model.accuracy],
+                            _,losst,acct=sess.run([modeling.model.sub_grad_op,modeling.model.loss,modeling.model.accuracy],
                                             feed_dict={modeling.model.X: data, modeling.model.Y: label, modeling.model.keep_prob: 0.2})
                         acc+=acct/modeling.train_step
                         loss+=losst/modeling.train_step
@@ -107,7 +107,7 @@ def localdata(filebed="./../input/",sync=1,lr=0.0001,epochs = 15,batch_size = 8,
                 if rank!=0:
                     for s in range(modeling.val_step):
                         data,label=next(modeling.val_next_batch_gen)
-                        losst,acct=sess.run([modeling.model.cnn_loss,modeling.model.accuracy], 
+                        losst,acct=sess.run([modeling.model.loss,modeling.model.accuracy], 
                                     feed_dict={modeling.model.X: data, modeling.model.Y: label, modeling.model.keep_prob: 1.0})
                         val_acc+=acct/modeling.val_step
                         val_loss+=losst/modeling.val_step
@@ -185,11 +185,11 @@ def masterdata(sync=1,lr=0.0001,epochs = 15,batch_size = 8):
         modeling=WorkerModeling(model,batch_size)
         train_step,val_step,test_step=comm.recv(source=0)
     modeling.model=model
-    modeling.model.graph()
+    modeling.model.Graph()
     config = tf.ConfigProto()
     config.gpu_options.allow_growth = True
     fit = time.time()
-    with tf.Session(config=config, graph=modeling.model.cnn_graph) as sess:
+    with tf.Session(config=config, graph=modeling.model.graph) as sess:
             init = tf.group(tf.global_variables_initializer(),
                         tf.local_variables_initializer())
             sess.run(init)
@@ -207,10 +207,10 @@ def masterdata(sync=1,lr=0.0001,epochs = 15,batch_size = 8):
 
                         data,label=comm.recv(source=0)
                         if s==(train_step-1):
-                            grads,losst,acct=sess.run([modeling.model._grad_op,modeling.model.cnn_loss,modeling.model.accuracy], 
+                            grads,losst,acct=sess.run([modeling.model._grad_op,modeling.model.loss,modeling.model.accuracy], 
                                             feed_dict={modeling.model.X: data, modeling.model.Y: label, modeling.model.keep_prob: 0.2})
                         else:
-                            _,losst,acct=sess.run([modeling.model.sub_grad_op,modeling.model.cnn_loss,modeling.model.accuracy],
+                            _,losst,acct=sess.run([modeling.model.sub_grad_op,modeling.model.loss,modeling.model.accuracy],
                                             feed_dict={modeling.model.X: data, modeling.model.Y: label, modeling.model.keep_prob: 0.2})
                         acc+=acct/train_step
                         loss+=losst/train_step
@@ -245,7 +245,7 @@ def masterdata(sync=1,lr=0.0001,epochs = 15,batch_size = 8):
                             comm.send([data[(i-1)*batch_size:k],label[(i-1)*batch_size:k]], dest=i)
                     else:
                         data,label=comm.recv(source=0)
-                        losst,acct=sess.run([modeling.model.cnn_loss,modeling.model.accuracy], 
+                        losst,acct=sess.run([modeling.model.loss,modeling.model.accuracy], 
                                         feed_dict={modeling.model.X: data, modeling.model.Y: label, modeling.model.keep_prob: 1.0})
                         val_acc+=acct/val_step
                         val_loss+=losst/val_step

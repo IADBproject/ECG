@@ -50,7 +50,7 @@ class CNNGraph:
     def stacked(self,x,keep_prob):
         # Define a scope for reusing the variables
         with tf.variable_scope('ConvNet'): 
-            is_training = True if keep_prob<1.0 else False
+            is_training =tf.cond( keep_prob<1.0,lambda:True,lambda: False)
 
             act1 = tf.layers.conv1d(x, 64, 16, padding='same',kernel_initializer=tf.glorot_uniform_initializer())
             x = tf.layers.batch_normalization(act1)
@@ -82,18 +82,18 @@ class CNNGraph:
 
 
 
-    def graph(self) -> tf.Tensor:
-        with tf.Graph().as_default() as self.cnn_graph:
+    def Graph(self) -> tf.Tensor:
+        with tf.Graph().as_default() as self.graph:
             self.X = tf.placeholder(tf.float32, shape=(None, self.input_size_1,self.input_size_2), name="Inputs")
             self.Y = tf.placeholder(tf.float32, shape=(None, self.output_size), name="Output")
             self.keep_prob = tf.placeholder(tf.float32)
 
             #for the training part
             self.projection = self.stacked(self.X,  self.keep_prob)
-            self.cnn_loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=self.projection, labels=self.Y))
+            self.loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=self.projection, labels=self.Y))
             self.adam_op = tf.train.AdamOptimizer(self.learning_rate)
-            self.cnn_grad_op = self.adam_op.compute_gradients(self.cnn_loss)
-            self.sub_grad_op = self.adam_op.minimize(self.cnn_loss)             
+            self.cnn_grad_op = self.adam_op.compute_gradients(self.loss)
+            self.sub_grad_op = self.adam_op.minimize(self.loss)             
             #self.grad_placeholder = [(tf.placeholder("float", shape=gradt[1].get_shape()), gradt[1]) for gradt in self.cnn_grad_op]
 
             #self.apply_op = self.adam_op.apply_gradients(self.grad_placeholder)
