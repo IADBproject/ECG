@@ -75,8 +75,12 @@ def localdata(filebed="./../input/",sync=1,lr=0.0001,epochs = 15,batch_size = 8)
                 if rank!=0:
                     for s in range(modeling.train_step):
                         data,label=next(modeling.train_next_batch_gen)
-                        grads,losst,acct=sess.run([modeling.model._grad_op,modeling.model.cnn_loss,modeling.model.accuracy], 
+                        if s==(modeling.train_step-1):
+                            grads,losst,acct=sess.run([modeling.model._grad_op,modeling.model.cnn_loss,modeling.model.accuracy], 
                                     feed_dict={modeling.model.X: data, modeling.model.Y: label, modeling.model.is_training: True})
+                        else:
+                            _,losst,acct=sess.run([modeling.model.sub_grad_op,modeling.model.cnn_loss,modeling.model.accuracy],
+                                            feed_dict={modeling.model.X: data, modeling.model.Y: label, modeling.model.is_training: True})
                         acc+=acct/modeling.train_step
                         loss+=losst/modeling.train_step
 
@@ -202,7 +206,11 @@ def masterdata(sync=1,lr=0.0001,epochs = 15,batch_size = 8):
                     else:
 
                         data,label=comm.recv(source=0)
-                        grads,losst,acct=sess.run([modeling.model._grad_op,modeling.model.cnn_loss,modeling.model.accuracy], 
+                        if s==(train_step-1):
+                            grads,losst,acct=sess.run([modeling.model._grad_op,modeling.model.cnn_loss,modeling.model.accuracy], 
+                                            feed_dict={modeling.model.X: data, modeling.model.Y: label, modeling.model.is_training: True})
+                        else:
+                            _,losst,acct=sess.run([modeling.model.sub_grad_op,modeling.model.cnn_loss,modeling.model.accuracy],
                                             feed_dict={modeling.model.X: data, modeling.model.Y: label, modeling.model.is_training: True})
                         acc+=acct/train_step
                         loss+=losst/train_step
