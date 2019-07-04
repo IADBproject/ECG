@@ -10,47 +10,47 @@ class CNNGraph:
         self.input_size_1 = input_size_1
         self.input_size_2 = input_size_2
         self.output_size = output_size
-        self.dropout = dropout
 
         ## Graph object trainable parameters:
-        self.cnn_graph = tf.Graph()
+        self.graph = tf.Graph()
         self.X: tf.placeholder
         self.Y: tf.placeholder
-        self.is_training: tf.placeholder
+        self.keep_prob: tf.placeholder
         self.projection: tf.Tensor
-        self.cnn_loss: tf.Tensor
-        self.cnn_grad_op: tf.Tensor
+        self.loss: tf.Tensor
+        self.grad_op: tf.Tensor
         self.learning_rate=learning_rate
 
             
-    def r_block(self,in_layer,k,is_training):
+    def r_block(self,in_layer,k,keep_prob,is_training):
         x = tf.layers.batch_normalization(in_layer)
         x = tf.nn.relu(x)
-        x = tf.layers.dropout(x, rate=0.2, training=is_training)
+        x = tf.layers.dropout(x, rate=keep_prob, training=is_training)
         x = tf.layers.conv1d(x,64*k,16,padding='same',kernel_initializer=tf.glorot_uniform_initializer())
         x = tf.layers.batch_normalization(x)
         x = tf.nn.relu(x)
-        x = tf.layers.dropout(x, rate=0.2, training=is_training)
+        x = tf.layers.dropout(x, rate=keep_prob, training=is_training)
         x = tf.layers.conv1d(x,64*k,16,padding='same',kernel_initializer=tf.glorot_uniform_initializer())
         x = tf.add(x,in_layer)
         return x
 
-    def subsampling_r_block(self,in_layer,k,is_training):
+    def subsampling_r_block(self,in_layer,k,keep_prob,is_training):
         x = tf.layers.batch_normalization(in_layer)
         x = tf.nn.relu(x)
-        x = tf.layers.dropout(x, rate=0.2, training=is_training)
+        x = tf.layers.dropout(x, rate=keep_prob, training=is_training)
         x = tf.layers.conv1d(x,64*k,16,kernel_initializer=tf.glorot_uniform_initializer(),padding='same')
         x = tf.layers.batch_normalization(x)
         x = tf.nn.relu(x)
-        x = tf.layers.dropout(x, rate=0.2, training=is_training)
+        x = tf.layers.dropout(x, rate=keep_prob, training=is_training)
         x = tf.layers.conv1d(x, 64*k, 1, strides=2,kernel_initializer=tf.glorot_uniform_initializer())
         pool = tf.layers.max_pooling1d(in_layer,1,strides=2)
         x = tf.add(x,pool)
         return x
 
-    def stacked(self,x,is_training):
+    def stacked(self,x,keep_prob):
         # Define a scope for reusing the variables
         with tf.variable_scope('ConvNet'): 
+            is_training = True if keep_prob<1.0 else False
 
             act1 = tf.layers.conv1d(x, 64, 16, padding='same',kernel_initializer=tf.glorot_uniform_initializer())
             x = tf.layers.batch_normalization(act1)
@@ -60,7 +60,7 @@ class CNNGraph:
             x = tf.layers.batch_normalization(x)
             x = tf.nn.relu(x)
 
-            x = tf.layers.dropout(x, rate=0.2, training=is_training)
+            x = tf.layers.dropout(x, rate=keep_prob, training=is_training)
             x1 = tf.layers.conv1d(x, 64, 1, strides=2,kernel_initializer=tf.glorot_uniform_initializer())
 
             x2 = tf.layers.max_pooling1d(act1,2,strides=2)
@@ -71,8 +71,8 @@ class CNNGraph:
                 if i%2 ==0:
                     k+=1
                 x=tf.layers.conv1d(x,64*k,16,padding='same',kernel_initializer=tf.glorot_uniform_initializer())
-                x=self.r_block(x,k,is_training)
-                x=self.subsampling_r_block(x,k,is_training)
+                x=self.r_block(x,k,keep_prob,is_training)
+                x=self.subsampling_r_block(x,k,keep_prob,is_training)
 
             x = tf.layers.batch_normalization(x)
             x = tf.nn.relu(x)
@@ -86,10 +86,10 @@ class CNNGraph:
         with tf.Graph().as_default() as self.cnn_graph:
             self.X = tf.placeholder(tf.float32, shape=(None, self.input_size_1,self.input_size_2), name="Inputs")
             self.Y = tf.placeholder(tf.float32, shape=(None, self.output_size), name="Output")
-            self.is_training = tf.placeholder(tf.bool, shape=())
+            self.keep_prob = tf.placeholder(tf.float32)
 
             #for the training part
-            self.projection = self.stacked(self.X,  self.is_training)
+            self.projection = self.stacked(self.X,  self.keep_prob)
             self.cnn_loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=self.projection, labels=self.Y))
             self.adam_op = tf.train.AdamOptimizer(self.learning_rate)
             self.cnn_grad_op = self.adam_op.compute_gradients(self.cnn_loss)
