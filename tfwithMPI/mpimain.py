@@ -36,7 +36,7 @@ def mastermain(size,batch_size,lr,mode,data='./../input/xdata.npy',label='./../i
 
 
 
-def localdata(filebed="./../input/",sync=1,lr=0.0001,epochs = 15,batch_size = 8):
+def localdata(filebed="./../input/",sync=1,lr=0.0001,epochs = 15,batch_size = 8,dropout=0.2):
     comm = MPI.COMM_WORLD
 
     size = comm.Get_size()
@@ -77,10 +77,10 @@ def localdata(filebed="./../input/",sync=1,lr=0.0001,epochs = 15,batch_size = 8)
                         data,label=next(modeling.train_next_batch_gen)
                         if s==(modeling.train_step-1):
                             grads,losst,acct=sess.run([modeling.model._grad_op,modeling.model.cnn_loss,modeling.model.accuracy], 
-                                    feed_dict={modeling.model.X: data, modeling.model.Y: label, modeling.model.is_training: True})
+                                    feed_dict={modeling.model.X: data, modeling.model.Y: label, modeling.model.keep_prob: 0.2})
                         else:
                             _,losst,acct=sess.run([modeling.model.sub_grad_op,modeling.model.cnn_loss,modeling.model.accuracy],
-                                            feed_dict={modeling.model.X: data, modeling.model.Y: label, modeling.model.is_training: True})
+                                            feed_dict={modeling.model.X: data, modeling.model.Y: label, modeling.model.keep_prob: 0.2})
                         acc+=acct/modeling.train_step
                         loss+=losst/modeling.train_step
 
@@ -108,7 +108,7 @@ def localdata(filebed="./../input/",sync=1,lr=0.0001,epochs = 15,batch_size = 8)
                     for s in range(modeling.val_step):
                         data,label=next(modeling.val_next_batch_gen)
                         losst,acct=sess.run([modeling.model.cnn_loss,modeling.model.accuracy], 
-                                    feed_dict={modeling.model.X: data, modeling.model.Y: label, modeling.model.is_training: False})
+                                    feed_dict={modeling.model.X: data, modeling.model.Y: label, modeling.model.keep_prob: 1.0})
                         val_acc+=acct/modeling.val_step
                         val_loss+=losst/modeling.val_step
                         
@@ -142,7 +142,7 @@ def localdata(filebed="./../input/",sync=1,lr=0.0001,epochs = 15,batch_size = 8)
                 for s in range(modeling.test_step):
                     data,label=next(modeling.test_next_batch_gen)
                     pred=sess.run(modeling.model.projection_1hot, 
-                                    feed_dict={modeling.model.X: data, modeling.model.is_training: False})
+                                    feed_dict={modeling.model.X: data, modeling.model.keep_prob: 1.0})
                     modeling.pred.append(pred)
                     modeling.label.append(label)
     if rank==0:
@@ -208,10 +208,10 @@ def masterdata(sync=1,lr=0.0001,epochs = 15,batch_size = 8):
                         data,label=comm.recv(source=0)
                         if s==(train_step-1):
                             grads,losst,acct=sess.run([modeling.model._grad_op,modeling.model.cnn_loss,modeling.model.accuracy], 
-                                            feed_dict={modeling.model.X: data, modeling.model.Y: label, modeling.model.is_training: True})
+                                            feed_dict={modeling.model.X: data, modeling.model.Y: label, modeling.model.keep_prob: 0.2})
                         else:
                             _,losst,acct=sess.run([modeling.model.sub_grad_op,modeling.model.cnn_loss,modeling.model.accuracy],
-                                            feed_dict={modeling.model.X: data, modeling.model.Y: label, modeling.model.is_training: True})
+                                            feed_dict={modeling.model.X: data, modeling.model.Y: label, modeling.model.keep_prob: 0.2})
                         acc+=acct/train_step
                         loss+=losst/train_step
 
@@ -246,7 +246,7 @@ def masterdata(sync=1,lr=0.0001,epochs = 15,batch_size = 8):
                     else:
                         data,label=comm.recv(source=0)
                         losst,acct=sess.run([modeling.model.cnn_loss,modeling.model.accuracy], 
-                                        feed_dict={modeling.model.X: data, modeling.model.Y: label, modeling.model.is_training: False})
+                                        feed_dict={modeling.model.X: data, modeling.model.Y: label, modeling.model.keep_prob: 1.0})
                         val_acc+=acct/val_step
                         val_loss+=losst/val_step
 
@@ -285,7 +285,7 @@ def masterdata(sync=1,lr=0.0001,epochs = 15,batch_size = 8):
                 else:
                     data,label=comm.recv(source=0)
                     pred=sess.run(modeling.model.projection_1hot, 
-                                            feed_dict={modeling.model.X: data, modeling.model.is_training: False})
+                                            feed_dict={modeling.model.X: data, modeling.model.keep_prob: 1.0})
                     modeling.pred.append(pred)
                     modeling.label.append(label)
 
